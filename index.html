@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Control de Instalaciones</title>
   
-  <!-- ÍCONO PARA PANTALLA DE INICIO -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231d4ed8'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><path d='M30 25 L45 40 L35 50 L20 35 Z M70 25 L55 40 L65 50 L80 35 Z' fill='%23ffffff'/><circle cx='50' cy='45' r='8' fill='%23f59e0b'/><path d='M42 50 L30 80 L38 85 L50 58 Z M58 50 L70 80 L62 85 L50 58 Z' fill='%23dc2626'/></svg>">
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231d4ed8'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><path d='M30 25 L45 40 L35 50 L20 35 Z M70 25 L55 40 L65 50 L80 35 Z' fill='%23ffffff'/><circle cx='50' cy='45' r='8' fill='%23f59e0b'/><path d='M42 50 L30 80 L38 85 L50 58 Z M58 50 L70 80 L62 85 L50 58 Z' fill='%23dc2626'/></svg>">
 
@@ -16,7 +15,7 @@
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans pb-10">
 
-  <!-- Header con Porcentaje de Avance -->
+  <!-- Header -->
   <header class="bg-blue-800 text-white p-3 shadow-md sticky top-0 z-20 space-y-2">
     <div class="flex justify-between items-center">
       <div>
@@ -44,7 +43,7 @@
 
   <main class="p-3 max-w-4xl mx-auto space-y-4">
 
-    <!-- PESTAÑA 1: PLANO Y DEPARTAMENTOS -->
+    <!-- PESTAÑA 1: PLANO EN FORMATO VERTICAL SEGUNDO PLANO IMPRESO -->
     <section id="sec-plano" class="space-y-4">
       
       <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 grid grid-cols-3 gap-2 text-center text-xs">
@@ -64,32 +63,57 @@
 
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         <div class="flex justify-between items-center mb-3">
-          <h2 class="font-bold text-base text-gray-800">Planta General</h2>
+          <div>
+            <h2 class="font-bold text-base text-gray-800">Planta General Tipo</h2>
+            <p class="text-[11px] text-gray-500">Distribución exacta según plano físico</p>
+          </div>
           <div class="flex items-center gap-2">
             <label class="text-xs font-semibold">Nivel:</label>
-            <select id="select-nivel" onchange="renderPlano(); cerrarDesplegable();" class="p-1 border rounded bg-gray-50 text-xs font-bold">
-              <option value="A">Nivel A (Piso 1)</option>
-              <option value="B">Nivel B (Piso 2)</option>
-              <option value="C">Nivel C (Piso 3)</option>
-              <option value="D">Nivel D (Piso 4)</option>
-              <option value="E">Nivel E (Piso 5)</option>
-              <option value="F">Nivel F (Piso 6)</option>
+            <select id="select-nivel" onchange="renderPlano(); cerrarDesplegable();" class="p-1.5 border rounded bg-gray-50 text-xs font-bold text-blue-900">
+              <option value="A">NIVEL 1 (A)</option>
+              <option value="B">NIVEL 2 (B)</option>
+              <option value="C">NIVEL 3 (C)</option>
+              <option value="D">NIVEL 4 (D)</option>
+              <option value="E">NIVEL 5 (E)</option>
+              <option value="F">NIVEL 6 (F)</option>
             </select>
           </div>
         </div>
 
-        <div class="border-2 border-gray-300 rounded-lg p-3 bg-gray-50 space-y-4">
-          <div>
-            <span class="text-[10px] font-bold text-gray-500 block mb-1">IZQUIERDA (A16 ➔ A9)</span>
-            <div id="fila-superior" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+        <!-- PLANO VERTICAL DOS COLUMNAS -->
+        <div class="border-2 border-gray-300 rounded-lg p-3 bg-gray-100 space-y-2">
+          
+          <div class="flex justify-between items-center px-2 py-1 bg-blue-900 text-white rounded text-[10px] font-bold">
+            <span>IZQUIERDA (A16 ➔ A9)</span>
+            <span>PASILLO CENTRAL</span>
+            <span>DERECHA (A1 ➔ A8)</span>
           </div>
-          <div>
-            <span class="text-[10px] font-bold text-gray-500 block mb-1">DERECHA (A1 ➔ A8)</span>
-            <div id="fila-inferior" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
+
+          <!-- FILAS DE ARRIBA A ABAJO -->
+          <div class="grid grid-cols-2 gap-3">
+            <!-- BLOQUE SUPERIOR (16-13 y 1-4) -->
+            <div id="col-izquierda-sup" class="space-y-2"></div>
+            <div id="col-derecha-sup" class="space-y-2"></div>
           </div>
+
+          <!-- INDICADOR NÚCLEO ESCALERAS / ASCENSOR EN EL MEDIO -->
+          <div class="my-2 p-1.5 bg-gray-300 border border-gray-400 rounded text-center text-[10px] font-bold text-gray-700 uppercase tracking-wider">
+            🏢 Núcleo de Circulación / Escaleras / Ascensor
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <!-- BLOQUE INFERIOR (12-9 y 5-8) -->
+            <div id="col-izquierda-inf" class="space-y-2"></div>
+            <div id="col-derecha-inf" class="space-y-2"></div>
+          </div>
+
+          <div class="mt-2 text-center py-1 bg-gray-200 text-gray-600 rounded text-[9px] font-bold uppercase">
+            📍 Fachada Principal
+          </div>
+
         </div>
 
-        <!-- PANEL DESPLEGABLE DEL DEPARTAMENTO SELECCIONADO -->
+        <!-- PANEL DESPLEGABLE DPTO SELECCIONADO -->
         <div id="panel-desplegable-dpto" class="hidden mt-4 border-2 border-blue-500 rounded-xl p-3 bg-white space-y-3 shadow-lg">
           <div class="flex justify-between items-center border-b pb-2">
             <div>
@@ -136,12 +160,12 @@
         
         <div class="flex gap-2 mb-4">
           <select id="select-entrega-nivel" onchange="calcularVistaEntrega()" class="p-2 border rounded text-xs bg-gray-50 font-bold flex-1">
-            <option value="A">Nivel A (Piso 1)</option>
-            <option value="B">Nivel B (Piso 2)</option>
-            <option value="C">Nivel C (Piso 3)</option>
-            <option value="D">Nivel D (Piso 4)</option>
-            <option value="E">Nivel E (Piso 5)</option>
-            <option value="F">Nivel F (Piso 6)</option>
+            <option value="A">Nivel 1 (A)</option>
+            <option value="B">Nivel 2 (B)</option>
+            <option value="C">Nivel 3 (C)</option>
+            <option value="D">Nivel 4 (D)</option>
+            <option value="E">Nivel 5 (E)</option>
+            <option value="F">Nivel 6 (F)</option>
           </select>
           <select id="select-entrega-dpto" onchange="calcularVistaEntrega()" class="p-2 border rounded text-xs bg-gray-50 font-bold flex-1">
             <option value="TODOS">Todo el Piso</option>
@@ -164,12 +188,12 @@
         <div class="mb-3">
           <select id="select-filtro-pedido" onchange="calcularPedidoGlobal()" class="w-full p-2 border rounded bg-gray-50 text-xs font-bold">
             <option value="obra">Obra Completa (Todos los Niveles)</option>
-            <option value="A">Solo Nivel A</option>
-            <option value="B">Solo Nivel B</option>
-            <option value="C">Solo Nivel C</option>
-            <option value="D">Solo Nivel D</option>
-            <option value="E">Solo Nivel E</option>
-            <option value="F">Solo Nivel F</option>
+            <option value="A">Solo Nivel 1 (A)</option>
+            <option value="B">Solo Nivel 2 (B)</option>
+            <option value="C">Solo Nivel 3 (C)</option>
+            <option value="D">Solo Nivel 4 (D)</option>
+            <option value="E">Solo Nivel 5 (E)</option>
+            <option value="F">Solo Nivel 6 (F)</option>
           </select>
         </div>
 
@@ -181,7 +205,7 @@
       </div>
     </section>
 
-    <!-- PESTAÑA 4: GESTIÓN DE MATERIALES Y PLANTILLAS -->
+    <!-- PESTAÑA 4: GESTIÓN DE MATERIALES -->
     <section id="sec-materiales" class="hidden space-y-4">
       
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
@@ -317,13 +341,11 @@
       let listaMod = JSON.parse(JSON.stringify(materialesEsp));
       
       if (num === 1 || num === 8) {
-        // A1 y A8: 2 de 12K y 1 de 18K
         let ac12 = listaMod.find(m => m.id === 'ac12');
         let ac18 = listaMod.find(m => m.id === 'ac18');
         if (ac12) ac12.cant = 2;
         if (ac18) ac18.cant = 1;
       } else if (num === 9 || num === 16) {
-        // A9 y A16: 3 de 12K
         let ac12 = listaMod.find(m => m.id === 'ac12');
         let ac18 = listaMod.find(m => m.id === 'ac18');
         if (ac12) ac12.cant = 3;
@@ -442,20 +464,35 @@
 
     function renderPlano() {
       const nivel = document.getElementById('select-nivel').value;
-      const sup = document.getElementById('fila-superior');
-      const inf = document.getElementById('fila-inferior');
-      sup.innerHTML = '';
-      inf.innerHTML = '';
+      
+      const izqSup = document.getElementById('col-izquierda-sup');
+      const derSup = document.getElementById('col-derecha-sup');
+      const izqInf = document.getElementById('col-izquierda-inf');
+      const derInf = document.getElementById('col-derecha-inf');
 
-      for (let i = 16; i >= 9; i--) sup.innerHTML += generarBotonPlano(`${nivel}${i}`, i);
-      for (let i = 1; i <= 8; i++) inf.innerHTML += generarBotonPlano(`${nivel}${i}`, i);
+      izqSup.innerHTML = '';
+      derSup.innerHTML = '';
+      izqInf.innerHTML = '';
+      derInf.innerHTML = '';
+
+      // IZQUIERDA SUPERIOR: A16 a A13 (Arriba hacia Abajo)
+      for (let i = 16; i >= 13; i--) izqSup.innerHTML += generarBotonPlano(`${nivel}${i}`, i);
+      
+      // DERECHA SUPERIOR: A1 a A4 (Arriba hacia Abajo)
+      for (let i = 1; i <= 4; i++) derSup.innerHTML += generarBotonPlano(`${nivel}${i}`, i);
+
+      // IZQUIERDA INFERIOR: A12 a A9 (Arriba hacia Abajo)
+      for (let i = 12; i >= 9; i--) izqInf.innerHTML += generarBotonPlano(`${nivel}${i}`, i);
+
+      // DERECHA INFERIOR: A5 a A8 (Arriba hacia Abajo)
+      for (let i = 5; i <= 8; i++) derInf.innerHTML += generarBotonPlano(`${nivel}${i}`, i);
     }
 
     function generarBotonPlano(codigo, num) {
       const datos = obtenerDatosDpto(codigo, num);
       const est = calcularEstado(codigo, num, datos);
 
-      let style = 'bg-gray-100 border-gray-400 text-gray-800';
+      let style = 'bg-white border-gray-300 text-gray-800';
       let tagTexto = '[PENDIENTE]';
       let detalleFaltanteHtml = '';
 
@@ -487,7 +524,7 @@
       numDptoSeleccionado = num;
       const datos = obtenerDatosDpto(codigo, num);
 
-      let desc = 'Estándar';
+      let desc = 'Estándar (2 Aires 12K)';
       if (num === 1 || num === 8) desc = 'Especial (2 Aires 12K + 1 Aire 18K)';
       else if (num === 9 || num === 16) desc = 'Especial (3 Aires 12K)';
 
