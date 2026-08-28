@@ -53,11 +53,11 @@
         </div>
         <div class="p-2 bg-yellow-50 rounded-lg border border-yellow-200">
           <span id="stat-parciales" class="block text-base font-black text-yellow-800">0</span>
-          <span class="text-[10px] text-yellow-900 font-bold">⚠ INCOMPLETO</span>
+          <span class="text-[10px] text-yellow-900 font-bold">⚠ PARCIAL / AIRE</span>
         </div>
-        <div class="p-2 bg-gray-50 rounded-lg border border-gray-300">
-          <span id="stat-pendientes" class="block text-base font-black text-gray-600">0</span>
-          <span class="text-[10px] text-gray-700 font-bold">✖ PENDIENTE</span>
+        <div class="p-2 bg-red-50 rounded-lg border border-red-200">
+          <span id="stat-pendientes" class="block text-base font-black text-red-600">0</span>
+          <span class="text-[10px] text-red-900 font-bold">✖ PENDIENTE</span>
         </div>
       </div>
 
@@ -65,7 +65,7 @@
         <div class="flex justify-between items-center mb-3">
           <div>
             <h2 class="font-bold text-base text-gray-800">Planta General Tipo</h2>
-            <p class="text-[11px] text-gray-500">Distribución exacta según plano impreso</p>
+            <p class="text-[11px] text-gray-500">🟩 Listo | 🟨 Parcial/Aire/Prueba | 🟥 Falta Todo</p>
           </div>
           <div class="flex items-center gap-2">
             <label class="text-xs font-semibold">Nivel:</label>
@@ -300,12 +300,10 @@
       { id: 'tm_mono', nombre: 'Llave TM Monofásica 20A', cant: 6 }
     ];
 
-    // BUSCADOR INTELIGENTE DE MEMORIA HISTÓRICA
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`, 
-        `${prefijo}_v9`, `${prefijo}_v8`, `${prefijo}_v7`, 
-        `${prefijo}_v6`, `${prefijo}_v5`, `${prefijo}_v4`
+        `${prefijo}_v13`, `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`, 
+        `${prefijo}_v9`, `${prefijo}_v8`, `${prefijo}_v7`, `${prefijo}_v6`
       ];
       for (let c of claves) {
         try {
@@ -381,19 +379,28 @@
       return dptosDatos[codigo];
     }
 
+    // LÓGICA REVISADA DE COLORES (ROJO / AMARILLO / VERDE)
     function calcularEstado(codigo, num, datos) {
       const listaMat = obtenerListaBaseParaDpto(num);
-      let tieneFaltantesInsumos = false;
+      let totalReq = 0;
+      let totalFalt = 0;
 
       listaMat.forEach(m => {
         if (m && m.cant > 0) {
+          totalReq += m.cant;
           const falt = (datos.faltantes && datos.faltantes[m.id] !== undefined) ? datos.faltantes[m.id] : 0;
-          if (falt > 0) tieneFaltantesInsumos = true;
+          totalFalt += falt;
         }
       });
 
-      if (!tieneFaltantesInsumos && datos.presion) return 'OK';
-      return 'PARCIAL';
+      // 1. VERDE: Prueba hecha Y Cero faltantes de materiales
+      if (!datos.presion === false && totalFalt === 0) return 'OK';
+
+      // 2. ROJO: Sin prueba Y Falta el 100% de materiales (o la gran mayoría)
+      if (!datos.presion && (totalFalt >= totalReq)) return 'ROJO';
+
+      // 3. AMARILLO: Tiene faltantes específicos (Aires, Prueba o Eléctrica parcial)
+      return 'AMARILLO';
     }
 
     function actualizarPorcentajeAvanceObra() {
@@ -401,7 +408,8 @@
       let totalPuntosCompletados = 0;
 
       let dptosListos = 0;
-      let dptosParciales = 0;
+      let dptosAmarillos = 0;
+      let dptosPendientes = 0;
 
       NIVELES.forEach(niv => {
         DPTOS_NUM.forEach(num => {
@@ -431,7 +439,8 @@
 
           const est = calcularEstado(cod, num, datos);
           if (est === 'OK') dptosListos++;
-          else dptosParciales++;
+          else if (est === 'AMARILLO') dptosAmarillos++;
+          else dptosPendientes++;
         });
       });
 
@@ -441,8 +450,8 @@
       document.getElementById('barra-progreso-header').style.width = `${pct}%`;
 
       document.getElementById('stat-listos').innerText = dptosListos;
-      document.getElementById('stat-parciales').innerText = dptosParciales;
-      document.getElementById('stat-pendientes').innerText = 0;
+      document.getElementById('stat-parciales').innerText = dptosAmarillos;
+      document.getElementById('stat-pendientes').innerText = dptosPendientes;
     }
 
     function obtenerResumenFaltantesTexto(codigo, num, datos) {
@@ -500,7 +509,11 @@
       let tagTexto = '✔ [COMPLETO]';
       let detalleFaltanteHtml = '';
 
-      if (est === 'PARCIAL') {
+      if (est === 'ROJO') {
+        style = 'bg-red-500 border-red-700 text-white font-bold';
+        tagTexto = '✖ [SIN INICIAR]';
+        detalleFaltanteHtml = `<span class="block text-[8px] leading-tight mt-0.5 text-white font-extrabold underline">Falta 100%</span>`;
+      } else if (est === 'AMARILLO') {
         style = 'bg-yellow-300 border-yellow-600 text-yellow-950 font-bold';
         tagTexto = '⚠ [INCOMPLETO]';
         const txtFalt = obtenerResumenFaltantesTexto(codigo, num, datos);
@@ -673,22 +686,15 @@
 
     function guardarDatos() {
       try {
-        const claves = [
-          'obra_mat_std_v12', 'obra_mat_std_v11', 'obra_mat_std_v10',
-          'obra_mat_esp_v12', 'obra_mat_esp_v11', 'obra_mat_esp_v10',
-          'obra_dptos_datos_v12', 'obra_dptos_datos_v11', 'obra_dptos_datos_v10',
-          'obra_deposito_v12', 'obra_deposito_v11', 'obra_deposito_v10'
-        ];
-        
+        localStorage.setItem('obra_mat_std_v13', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp_v13', JSON.stringify(materialesEsp));
+        localStorage.setItem('obra_dptos_datos_v13', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v13', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v12', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp_v12', JSON.stringify(materialesEsp));
         localStorage.setItem('obra_dptos_datos_v12', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v12', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v11', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp_v11', JSON.stringify(materialesEsp));
-        localStorage.setItem('obra_dptos_datos_v11', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v11', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
