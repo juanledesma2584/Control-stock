@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Materiales - Edificio 100 Dptos</title>
+  <title>Control de Stock - Obra Electrica</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .tab-active { border-bottom: 3px solid #2563eb; color: #2563eb; font-weight: bold; }
@@ -11,271 +11,317 @@
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans pb-10">
 
-  <!-- Header -->
-  <header class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-10">
-    <h1 class="text-xl font-bold">Control de Stock - Obra</h1>
-    <p class="text-xs text-blue-100">Gestión de instalaciones eléctricas (100 Departamentos)</p>
+  <header class="bg-blue-700 text-white p-4 shadow-md sticky top-0 z-10">
+    <h1 class="text-xl font-bold">Control de Instalación y Stock</h1>
+    <p class="text-xs text-blue-200">Gestión de Obra - 16 Dptos / Piso</p>
   </header>
 
-  <!-- Navegación por pestañas -->
-  <nav class="bg-white shadow flex justify-around border-b border-gray-200 text-sm">
-    <button id="tab1" onclick="switchTab('config')" class="py-3 px-2 tab-active flex-1 text-center">Planilla / Dpto</button>
-    <button id="tab2" onclick="switchTab('uso')" class="py-3 px-2 flex-1 text-center">Reg. Uso</button>
-    <button id="tab3" onclick="switchTab('piso')" class="py-3 px-2 flex-1 text-center">Faltantes Piso</button>
-    <button id="tab4" onclick="switchTab('global')" class="py-3 px-2 flex-1 text-center">Stock Global</button>
+  <nav class="bg-white shadow flex justify-around border-b border-gray-200 text-xs sm:text-sm font-medium sticky top-[60px] z-10">
+    <button id="tab1" onclick="switchTab('avance')" class="py-3 px-1 tab-active flex-1 text-center">Avance Dptos</button>
+    <button id="tab2" onclick="switchTab('deposito')" class="py-3 px-1 flex-1 text-center">Stock Depósito</button>
+    <button id="tab3" onclick="switchTab('pedido')" class="py-3 px-1 flex-1 text-center">Pedido Compra</button>
+    <button id="tab4" onclick="switchTab('config')" class="py-3 px-1 flex-1 text-center">Lista Materiales</button>
   </nav>
 
-  <main class="p-4 max-w-2xl mx-auto">
+  <main class="p-4 max-w-2xl mx-auto space-y-4">
 
-    <!-- PANEL 1: Requerimientos por Departamento -->
-    <section id="sec-config" class="space-y-4">
+    <section id="sec-avance" class="space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-lg mb-2 text-blue-800">Cómputo por Departamento</h2>
-        <p class="text-xs text-gray-500 mb-4">Ingresá la cantidad de insumos que lleva UN departamento tipo:</p>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="font-bold text-lg text-gray-800">Cargar Departamentos Terminados</h2>
+          <div class="flex items-center gap-2">
+            <label class="text-xs font-semibold">Piso:</label>
+            <select id="select-piso-avance" onchange="renderCuadriculaDptos()" class="p-1 border rounded bg-gray-50 text-sm font-bold">
+              </select>
+          </div>
+        </div>
+        <p class="text-xs text-gray-500 mb-4">Toca un departamento para marcarlo como **Terminado** o **Pendiente**.</p>
+
+        <div id="cuadricula-dptos" class="grid grid-cols-4 gap-2">
+          </div>
+
+        <div class="mt-4 flex items-center justify-around text-xs text-gray-600 border-t pt-3">
+          <div class="flex items-center gap-1"><span class="w-3 h-3 bg-green-500 rounded-full inline-block"></span> Terminado</div>
+          <div class="flex items-center gap-1"><span class="w-3 h-3 bg-gray-200 border rounded-full inline-block"></span> Pendiente</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="sec-deposito" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <h2 class="font-bold text-lg mb-1 text-gray-800">Stock Físico en Depósito</h2>
+        <p class="text-xs text-gray-500 mb-4">Cargá las cantidades exactas disponible en el pañol/obra.</p>
         
-        <div class="grid grid-cols-2 gap-3 text-sm">
-          <div>
-            <label class="block font-medium">Luces / Picos</label>
-            <input type="number" id="req-luces" class="w-full p-2 border rounded mt-1" value="8" min="0">
+        <div id="lista-deposito" class="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
           </div>
-          <div>
-            <label class="block font-medium">Tomas (Enchufes)</label>
-            <input type="number" id="req-tomas" class="w-full p-2 border rounded mt-1" value="12" min="0">
-          </div>
-          <div>
-            <label class="block font-medium">Picos de Luz Ext.</label>
-            <input type="number" id="req-picos" class="w-full p-2 border rounded mt-1" value="4" min="0">
-          </div>
-          <div>
-            <label class="block font-medium">Llaves (Puntos)</label>
-            <input type="number" id="req-llaves" class="w-full p-2 border rounded mt-1" value="6" min="0">
-          </div>
-        </div>
-        <button onclick="guardarConfig()" class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700">Guardar Estándar</button>
-      </div>
 
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h3 class="font-bold mb-2">Total Edificio (100 Dptos)</h3>
-        <div id="resumen-total-edificio" class="grid grid-cols-2 gap-2 text-sm text-gray-700"></div>
+        <button onclick="guardarDeposito()" class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 text-sm shadow">
+          Guardar Stock de Depósito
+        </button>
       </div>
     </section>
 
-    <!-- PANEL 2: Cargar Uso diario -->
-    <section id="sec-uso" class="hidden space-y-4">
+    <section id="sec-pedido" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-lg mb-2 text-blue-800">Registrar Material Utilizado</h2>
+        <h2 class="font-bold text-lg mb-2 text-gray-800">Cálculo de Pedido y Faltantes</h2>
         
-        <div class="space-y-3 text-sm">
-          <div>
-            <label class="block font-medium">Número de Departamento (1 al 100)</label>
-            <input type="number" id="uso-dpto" min="1" max="100" class="w-full p-2 border rounded mt-1" placeholder="Ej: 12">
-          </div>
-          
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-xs font-medium">Luces Usadas</label>
-              <input type="number" id="uso-luces" class="w-full p-2 border rounded mt-1" value="0">
-            </div>
-            <div>
-              <label class="block text-xs font-medium">Tomas Usados</label>
-              <input type="number" id="uso-tomas" class="w-full p-2 border rounded mt-1" value="0">
-            </div>
-            <div>
-              <label class="block text-xs font-medium">Picos Usados</label>
-              <input type="number" id="uso-picos" class="w-full p-2 border rounded mt-1" value="0">
-            </div>
-            <div>
-              <label class="block text-xs font-medium">Llaves Usadas</label>
-              <input type="number" id="uso-llaves" class="w-full p-2 border rounded mt-1" value="0">
-            </div>
+        <div class="mb-4">
+          <label class="block text-xs font-semibold mb-1">Calcular faltantes para:</label>
+          <select id="select-filtro-pedido" onchange="calcularPedido()" class="w-full p-2 border rounded bg-gray-50 text-sm">
+            <option value="obra">Obra Completa (Todos los pisos)</option>
+            </select>
+        </div>
+
+        <div id="resumen-pedido" class="space-y-2 text-sm border-t pt-3">
           </div>
 
-          <button onclick="registrarUso()" class="w-full bg-green-600 text-white py-2 rounded-lg font-semibold hover:bg-green-700 mt-2">Cargar Uso</button>
-        </div>
+        <button onclick="copiarPedidoWhatsApp()" class="w-full mt-4 bg-emerald-600 text-white py-2 rounded-lg font-semibold hover:bg-emerald-700 text-sm shadow flex items-center justify-center gap-2">
+          Copiar Pedido para WhatsApp
+        </button>
       </div>
     </section>
 
-    <!-- PANEL 3: Faltantes por Piso -->
-    <section id="sec-piso" class="hidden space-y-4">
+    <section id="sec-config" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-lg mb-2 text-blue-800">Faltantes para Terminar el Piso</h2>
-        <label class="block text-sm font-medium mb-1">Seleccionar Piso</label>
-        <select id="select-piso" onchange="calcularFaltantePiso()" class="w-full p-2 border rounded mb-4">
-          <!-- Opciones cargadas por JS -->
-        </select>
+        <h2 class="font-bold text-lg mb-1 text-gray-800">Plantilla por Departamento</h2>
+        <p class="text-xs text-gray-500 mb-4">Modificá o agregá ítems estándar que lleva cada departamento.</p>
 
-        <div id="resultado-piso" class="space-y-2">
-          <!-- Resultado renderizado vía JS -->
+        <div id="lista-materiales-config" class="space-y-2 max-h-[50vh] overflow-y-auto pr-1">
+          </div>
+
+        <div class="mt-4 pt-3 border-t space-y-2">
+          <h3 class="font-semibold text-xs text-gray-700">Agregar nuevo ítem:</h3>
+          <div class="flex gap-2">
+            <input type="text" id="nuevo-item-nombre" placeholder="Nombre del material" class="p-2 border rounded text-xs flex-1">
+            <input type="number" id="nuevo-item-cant" placeholder="Cant." class="p-2 border rounded text-xs w-20" min="1">
+            <button onclick="agregarNuevoMaterial()" class="bg-gray-800 text-white px-3 py-1 rounded text-xs">Agregar</button>
+          </div>
         </div>
-      </div>
-    </section>
 
-    <!-- PANEL 4: Stock Global -->
-    <section id="sec-global" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-lg mb-2 text-blue-800">Balance General de la Obra</h2>
-        <div id="balance-global" class="space-y-3 text-sm"></div>
+        <button onclick="guardarConfiguracionMateriales()" class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg font-semibold hover:bg-blue-700 text-sm shadow">
+          Guardar Cambios en Plantilla
+        </button>
       </div>
     </section>
 
   </main>
 
   <script>
-    const TOTAL_DPTOS = 100;
-    const DPTOS_POR_PISO = 10; // Asumiendo 10 pisos de 10 dptos
+    const TOTAL_PISOS = 6; // Podés ajustar los pisos necesarios
+    const DPTO_POR_PISO = 16;
 
-    let config = JSON.parse(localStorage.getItem('obra_config')) || { luces: 8, tomas: 12, picos: 4, llaves: 6 };
-    let uso = JSON.parse(localStorage.getItem('obra_uso')) || {};
+    // Plantilla inicial requerida por cada Dpto
+    const plantillaInicial = [
+      { id: 'l1', nombre: 'Redondo de sobreponer cálido 30W', cant: 1 },
+      { id: 'l2', nombre: 'Redondo de sobreponer cálido 24W', cant: 1 },
+      { id: 'l3', nombre: 'Redondo de sobreponer cálido 9W', cant: 3 },
+      { id: 'l4', nombre: 'Redondo de embutir cálido 18W', cant: 1 },
+      { id: 'l5', nombre: 'Redondo de embutir cálido 12W', cant: 4 },
+      { id: 'p1', nombre: 'Placa de 1x24mm', cant: 20 },
+      { id: 'p2', nombre: 'Placa de 2x24mm', cant: 3 },
+      { id: 'p3', nombre: 'Placa de 3x24mm', cant: 5 },
+      { id: 'pt', nombre: 'Pico toma de 24mm', cant: 15 },
+      { id: 'pl', nombre: 'Pico llave de 24mm', cant: 8 },
+      { id: 'ts', nombre: 'Toma shuko de 48mm', cant: 5 },
+      { id: 'tb', nombre: 'Pico timbre', cant: 16 }
+    ];
+
+    let materiales = JSON.parse(localStorage.getItem('obra_materiales')) || plantillaInicial;
+    let dptosTerminados = JSON.parse(localStorage.getItem('obra_dptos_terminados')) || {};
+    let deposito = JSON.parse(localStorage.getItem('obra_deposito')) || {};
 
     function init() {
-      document.getElementById('req-luces').value = config.luces;
-      document.getElementById('req-tomas').value = config.tomas;
-      document.getElementById('req-picos').value = config.picos;
-      document.getElementById('req-llaves').value = config.llaves;
+      // Poblar selectors de pisos
+      const selAvance = document.getElementById('select-piso-avance');
+      const selPedido = document.getElementById('select-filtro-pedido');
+      selAvance.innerHTML = '';
 
-      // Cargar selector de pisos (Piso 1 al 10)
-      const selectPiso = document.getElementById('select-piso');
-      selectPiso.innerHTML = '';
-      for (let i = 1; i <= 10; i++) {
-        selectPiso.innerHTML += `<option value="${i}">Piso ${i} (Dptos ${ (i-1)*10 + 1 } al ${ i*10 })</option>`;
+      for (let i = 1; i <= TOTAL_PISOS; i++) {
+        selAvance.innerHTML += `<option value="${i}">Piso ${i}</option>`;
+        selPedido.innerHTML += `<option value="${i}">Solo Piso ${i}</option>`;
       }
 
-      actualizarResumenConfig();
-      calcularFaltantePiso();
-      actualizarGlobal();
+      renderCuadriculaDptos();
+      renderConfigMateriales();
+      renderDeposito();
+      calcularPedido();
     }
 
     function switchTab(tab) {
-      ['config', 'uso', 'piso', 'global'].forEach((t, i) => {
+      ['avance', 'deposito', 'pedido', 'config'].forEach((t, i) => {
         document.getElementById(`sec-${t}`).classList.add('hidden');
         document.getElementById(`tab${i+1}`).classList.remove('tab-active');
       });
       
-      const tabMap = { 'config': 1, 'uso': 2, 'piso': 3, 'global': 4 };
+      const map = { 'avance': 1, 'deposito': 2, 'pedido': 3, 'config': 4 };
       document.getElementById(`sec-${tab}`).classList.remove('hidden');
-      document.getElementById(`tab${tabMap[tab]}`).classList.add('tab-active');
+      document.getElementById(`tab${map[tab]}`).classList.add('tab-active');
 
-      if(tab === 'piso') calcularFaltantePiso();
-      if(tab === 'global') actualizarGlobal();
+      if (tab === 'deposito') renderDeposito();
+      if (tab === 'pedido') calcularPedido();
+      if (tab === 'config') renderConfigMateriales();
     }
 
-    function guardarConfig() {
-      config = {
-        luces: parseInt(document.getElementById('req-luces').value) || 0,
-        tomas: parseInt(document.getElementById('req-tomas').value) || 0,
-        picos: parseInt(document.getElementById('req-picos').value) || 0,
-        llaves: parseInt(document.getElementById('req-llaves').value) || 0,
-      };
-      localStorage.setItem('obra_config', JSON.stringify(config));
-      actualizarResumenConfig();
-      alert('Configuración guardada.');
-    }
+    // --- AVANCE DPTO ---
+    function renderCuadriculaDptos() {
+      const piso = parseInt(document.getElementById('select-piso-avance').value) || 1;
+      const contenedor = document.getElementById('cuadricula-dptos');
+      contenedor.innerHTML = '';
 
-    function actualizarResumenConfig() {
-      document.getElementById('resumen-total-edificio').innerHTML = `
-        <div class="bg-gray-50 p-2 rounded"><b>Luces:</b> ${config.luces * TOTAL_DPTOS}</div>
-        <div class="bg-gray-50 p-2 rounded"><b>Tomas:</b> ${config.tomas * TOTAL_DPTOS}</div>
-        <div class="bg-gray-50 p-2 rounded"><b>Picos:</b> ${config.picos * TOTAL_DPTOS}</div>
-        <div class="bg-gray-50 p-2 rounded"><b>Llaves:</b> ${config.llaves * TOTAL_DPTOS}</div>
-      `;
-    }
+      for (let i = 1; i <= DPTO_POR_PISO; i++) {
+        const numDpto = (piso * 100) + i; // Ej: Piso 1 -> 101 a 116
+        const listo = dptosTerminados[numDpto] || false;
 
-    function registrarUso() {
-      const dpto = parseInt(document.getElementById('uso-dpto').value);
-      if (!dpto || dpto < 1 || dpto > TOTAL_DPTOS) {
-        alert('Ingresá un número de departamento válido (1 al 100).');
-        return;
+        contenedor.innerHTML += `
+          <button onclick="toggleDpto(${numDpto})" 
+            class="p-3 font-bold rounded-lg border text-sm flex flex-col items-center justify-center transition ${
+              listo ? 'bg-green-500 text-white border-green-600' : 'bg-gray-100 text-gray-700 border-gray-300'
+            }">
+            <span>${numDpto}</span>
+            <span class="text-[10px] font-normal">${listo ? 'OK' : 'Pend.'}</span>
+          </button>
+        `;
       }
-
-      uso[dpto] = {
-        luces: parseInt(document.getElementById('uso-luces').value) || 0,
-        tomas: parseInt(document.getElementById('uso-tomas').value) || 0,
-        picos: parseInt(document.getElementById('uso-picos').value) || 0,
-        llaves: parseInt(document.getElementById('uso-llaves').value) || 0
-      };
-
-      localStorage.setItem('obra_uso', JSON.stringify(uso));
-      alert(`Uso registrado correctamente para Dpto ${dpto}`);
-      document.getElementById('uso-dpto').value = '';
     }
 
-    function calcularFaltantePiso() {
-      const piso = parseInt(document.getElementById('select-piso').value);
-      const dptoInicio = (piso - 1) * DPTOS_POR_PISO + 1;
-      const dptoFin = piso * DPTOS_POR_PISO;
+    function toggleDpto(numDpto) {
+      dptosTerminados[numDpto] = !dptosTerminados[numDpto];
+      localStorage.setItem('obra_dptos_terminados', JSON.stringify(dptosTerminados));
+      renderCuadriculaDptos();
+    }
 
-      let acumuladoUso = { luces: 0, tomas: 0, picos: 0, llaves: 0 };
+    // --- CONFIGURACIÓN ---
+    function renderConfigMateriales() {
+      const cont = document.getElementById('lista-materiales-config');
+      cont.innerHTML = '';
 
-      for (let i = dptoInicio; i <= dptoFin; i++) {
-        if (uso[i]) {
-          acumuladoUso.luces += uso[i].luces;
-          acumuladoUso.tomas += uso[i].tomas;
-          acumuladoUso.picos += uso[i].picos;
-          acumuladoUso.llaves += uso[i].llaves;
+      materiales.forEach((m, idx) => {
+        cont.innerHTML += `
+          <div class="flex items-center gap-2 bg-gray-50 p-2 rounded border">
+            <input type="text" value="${m.nombre}" onchange="actualizarNombreMat(${idx}, this.value)" class="flex-1 text-xs p-1 border rounded">
+            <input type="number" value="${m.cant}" onchange="actualizarCantMat(${idx}, this.value)" class="w-16 text-xs p-1 border rounded text-center" min="0">
+            <button onclick="eliminarMaterial(${idx})" class="text-red-500 font-bold px-1 text-xs">✕</button>
+          </div>
+        `;
+      });
+    }
+
+    function actualizarNombreMat(idx, val) { materiales[idx].nombre = val; }
+    function actualizarCantMat(idx, val) { materiales[idx].cant = parseInt(val) || 0; }
+    function eliminarMaterial(idx) {
+      materiales.splice(idx, 1);
+      renderConfigMateriales();
+    }
+
+    function agregarNuevoMaterial() {
+      const nom = document.getElementById('nuevo-item-nombre').value;
+      const cant = parseInt(document.getElementById('nuevo-item-cant').value) || 0;
+      if (nom && cant > 0) {
+        materiales.push({ id: 'm_' + Date.now(), nombre: nom, cant: cant });
+        document.getElementById('nuevo-item-nombre').value = '';
+        document.getElementById('nuevo-item-cant').value = '';
+        renderConfigMateriales();
+      }
+    }
+
+    function guardarConfiguracionMateriales() {
+      localStorage.setItem('obra_materiales', JSON.stringify(materiales));
+      alert('Plantilla guardada correctamente.');
+    }
+
+    // --- DEPÓSITO ---
+    function renderDeposito() {
+      const cont = document.getElementById('lista-deposito');
+      cont.innerHTML = '';
+
+      materiales.forEach(m => {
+        const val = deposito[m.id] || 0;
+        cont.innerHTML += `
+          <div class="flex justify-between items-center bg-gray-50 p-2 rounded border text-xs">
+            <span class="font-medium text-gray-700 flex-1">${m.nombre}</span>
+            <input type="number" id="dep-${m.id}" value="${val}" min="0" class="w-20 p-1 border rounded text-center font-bold">
+          </div>
+        `;
+      });
+    }
+
+    function guardarDeposito() {
+      materiales.forEach(m => {
+        const input = document.getElementById(`dep-${m.id}`);
+        if (input) deposito[m.id] = parseInt(input.value) || 0;
+      });
+      localStorage.setItem('obra_deposito', JSON.stringify(deposito));
+      alert('Stock de depósito actualizado.');
+    }
+
+    // --- PEDIDO Y FALTANTES ---
+    let resumenActualPedido = [];
+
+    function calcularPedido() {
+      const filtro = document.getElementById('select-filtro-pedido').value;
+      const cont = document.getElementById('resumen-pedido');
+      cont.innerHTML = '';
+      resumenActualPedido = [];
+
+      let dptosAfectados = [];
+
+      if (filtro === 'obra') {
+        for (let p = 1; p <= TOTAL_PISOS; p++) {
+          for (let d = 1; d <= DPTO_POR_PISO; d++) {
+            dptosAfectados.push((p * 100) + d);
+          }
+        }
+      } else {
+        const p = parseInt(filtro);
+        for (let d = 1; d <= DPTO_POR_PISO; d++) {
+          dptosAfectados.push((p * 100) + d);
         }
       }
 
-      const totalPisoRequerido = {
-        luces: config.luces * DPTOS_POR_PISO,
-        tomas: config.tomas * DPTOS_POR_PISO,
-        picos: config.picos * DPTOS_POR_PISO,
-        llaves: config.llaves * DPTOS_POR_PISO
-      };
-
-      const faltante = {
-        luces: Math.max(0, totalPisoRequerido.luces - acumuladoUso.luces),
-        tomas: Math.max(0, totalPisoRequerido.tomas - acumuladoUso.tomas),
-        picos: Math.max(0, totalPisoRequerido.picos - acumuladoUso.picos),
-        llaves: Math.max(0, totalPisoRequerido.llaves - acumuladoUso.llaves)
-      };
-
-      document.getElementById('resultado-piso').innerHTML = `
-        <div class="p-3 bg-red-50 text-red-700 rounded-lg border border-red-200">
-          <p class="font-bold text-base border-b border-red-200 pb-1 mb-2">Faltantes Piso ${piso}</p>
-          <div class="grid grid-cols-2 gap-2 text-sm">
-            <div><b>Luces:</b> ${faltante.luces} u.</div>
-            <div><b>Tomas:</b> ${faltante.tomas} u.</div>
-            <div><b>Picos:</b> ${faltante.picos} u.</div>
-            <div><b>Llaves:</b> ${faltante.llaves} u.</div>
-          </div>
-        </div>
-      `;
-    }
-
-    function actualizarGlobal() {
-      let totalUsado = { luces: 0, tomas: 0, picos: 0, llaves: 0 };
-      Object.values(uso).forEach(u => {
-        totalUsado.luces += u.luces;
-        totalUsado.tomas += u.tomas;
-        totalUsado.picos += u.picos;
-        totalUsado.llaves += u.llaves;
+      // Calcular dptos pendientes
+      let pendientesCount = 0;
+      dptosAfectados.forEach(d => {
+        if (!dptosTerminados[d]) pendientesCount++;
       });
 
-      const totalEdificio = {
-        luces: config.luces * TOTAL_DPTOS,
-        tomas: config.tomas * TOTAL_DPTOS,
-        picos: config.picos * TOTAL_DPTOS,
-        llaves: config.llaves * TOTAL_DPTOS
-      };
+      materiales.forEach(m => {
+        const totalRequerido = m.cant * pendientesCount;
+        const disponibleDep = deposito[m.id] || 0;
+        const faltanteReal = Math.max(0, totalRequerido - disponibleDep);
 
-      document.getElementById('balance-global').innerHTML = `
-        <div class="p-3 bg-gray-50 rounded border">
-          <p class="font-bold">Luces</p>
-          <p class="text-xs text-gray-600">Usado: ${totalUsado.luces} / ${totalEdificio.luces} (Faltan: ${totalEdificio.luces - totalUsado.luces})</p>
-        </div>
-        <div class="p-3 bg-gray-50 rounded border">
-          <p class="font-bold">Tomas</p>
-          <p class="text-xs text-gray-600">Usado: ${totalUsado.tomas} / ${totalEdificio.tomas} (Faltan: ${totalEdificio.tomas - totalUsado.tomas})</p>
-        </div>
-        <div class="p-3 bg-gray-50 rounded border">
-          <p class="font-bold">Picos</p>
-          <p class="text-xs text-gray-600">Usado: ${totalUsado.picos} / ${totalEdificio.picos} (Faltan: ${totalEdificio.picos - totalUsado.picos})</p>
-        </div>
-        <div class="p-3 bg-gray-50 rounded border">
-          <p class="font-bold">Llaves</p>
-          <p class="text-xs text-gray-600">Usado: ${totalUsado.llaves} / ${totalEdificio.llaves} (Faltan: ${totalEdificio.llaves - totalUsado.llaves})</p>
-        </div>
-      `;
+        if (faltanteReal > 0) {
+          resumenActualPedido.push({ nombre: m.nombre, cant: faltanteReal });
+        }
+
+        cont.innerHTML += `
+          <div class="flex justify-between items-center p-2 rounded ${faltanteReal > 0 ? 'bg-red-50 border border-red-100' : 'bg-green-50'} text-xs">
+            <div>
+              <p class="font-semibold text-gray-800">${m.nombre}</p>
+              <p class="text-[10px] text-gray-500">Necesarios: ${totalRequerido} | En dep: ${disponiblesDep}</p>
+            </div>
+            <span class="font-bold text-sm ${faltanteReal > 0 ? 'text-red-600' : 'text-green-600'}">
+              ${faltanteReal > 0 ? 'Faltan: ' + faltanteReal : 'OK'}
+            </span>
+          </div>
+        `;
+      });
+    }
+
+    function copiarPedidoWhatsApp() {
+      if (resumenActualPedido.length === 0) {
+        alert('No hay faltantes registrados para el filtro seleccionado.');
+        return;
+      }
+
+      let texto = "*PEDIDO DE MATERIALES ELECTRICO*\n";
+      texto += "-----------------------------------\n";
+      resumenActualPedido.forEach(item => {
+        texto += `• ${item.nombre}: *${item.cant} un.*\n`;
+      });
+
+      navigator.clipboard.writeText(texto).then(() => {
+        alert('¡Pedido copiado al portapapeles! Abrí WhatsApp y pegalo.');
+      });
     }
 
     window.onload = init;
