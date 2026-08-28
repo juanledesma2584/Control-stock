@@ -49,17 +49,17 @@
     <section id="sec-plano" class="space-y-4">
       
       <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 grid grid-cols-3 gap-2 text-center text-xs">
-        <div class="p-2 bg-green-50 rounded-lg border border-green-100">
+        <div class="p-2 bg-green-50 rounded-lg border border-green-200">
           <span id="stat-listos" class="block text-base font-black text-green-700">0</span>
-          <span class="text-[10px] text-green-800 font-semibold">Listos (100%)</span>
+          <span class="text-[10px] text-green-900 font-bold">✔ COMPLETO</span>
         </div>
-        <div class="p-2 bg-yellow-50 rounded-lg border border-yellow-100">
-          <span id="stat-parciales" class="block text-base font-black text-yellow-700">0</span>
-          <span class="text-[10px] text-yellow-800 font-semibold">En Proceso</span>
+        <div class="p-2 bg-yellow-50 rounded-lg border border-yellow-200">
+          <span id="stat-parciales" class="block text-base font-black text-yellow-800">0</span>
+          <span class="text-[10px] text-yellow-900 font-bold">⚠ INCOMPLETO</span>
         </div>
-        <div class="p-2 bg-gray-50 rounded-lg border border-gray-200">
+        <div class="p-2 bg-gray-50 rounded-lg border border-gray-300">
           <span id="stat-pendientes" class="block text-base font-black text-gray-600">0</span>
-          <span class="text-[10px] text-gray-500 font-semibold">Sin Iniciar</span>
+          <span class="text-[10px] text-gray-700 font-bold">✖ PENDIENTE</span>
         </div>
       </div>
 
@@ -82,11 +82,11 @@
         <div class="border-2 border-gray-300 rounded-lg p-3 bg-gray-50 space-y-4">
           <div>
             <span class="text-[10px] font-bold text-gray-500 block mb-1">IZQUIERDA (A16 ➔ A9)</span>
-            <div id="fila-superior" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
+            <div id="fila-superior" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
           </div>
           <div>
             <span class="text-[10px] font-bold text-gray-500 block mb-1">DERECHA (A1 ➔ A8)</span>
-            <div id="fila-inferior" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
+            <div id="fila-inferior" class="grid grid-cols-2 sm:grid-cols-4 gap-2"></div>
           </div>
         </div>
 
@@ -102,18 +102,23 @@
           <div class="space-y-2">
             <button id="btn-prueba-fuga" onclick="togglePruebaFuga()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
               <span>💧 Prueba de Fuga / Presión</span>
-              <span id="txt-estado-fuga" class="text-[10px] px-2 py-0.5 rounded font-bold">Pendiente</span>
+              <span id="txt-estado-fuga" class="text-[10px] px-2 py-0.5 rounded font-bold">PENDIENTE</span>
             </button>
 
-            <button id="btn-realizado-completo" onclick="marcarTodoRealizado()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
-              <span>✅ Instalación Realizada / Completa</span>
-              <span id="txt-estado-completo" class="text-[10px] px-2 py-0.5 rounded font-bold">Incompleto</span>
+            <button id="btn-realizado-completo" onclick="toggleEstadoRealizadoCompleto()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
+              <span id="label-btn-realizado">✅ Instalación Realizada / Completa</span>
+              <span id="txt-estado-completo" class="text-[10px] px-2 py-0.5 rounded font-bold">INCOMPLETO</span>
+            </button>
+
+            <!-- BOTÓN PARA DESHACER SI SE MARCÓ POR ERROR -->
+            <button id="btn-deshacer" onclick="deshacerMarcaError()" class="w-full py-2 px-3 rounded-lg border border-blue-300 bg-blue-50 text-blue-900 font-bold text-xs flex items-center justify-center gap-1 hover:bg-blue-100">
+              🔄 Restablecer / Editar Cantidades de este Dpto
             </button>
           </div>
 
           <div class="pt-2 border-t">
-            <button onclick="toggleListaFaltantes()" class="w-full text-left text-xs font-bold text-amber-700 hover:text-amber-900 flex justify-between items-center bg-amber-50 p-2 rounded border border-amber-200">
-              <span>⚠️ Incompleto / Cargar Faltantes Específicos</span>
+            <button onclick="toggleListaFaltantes()" class="w-full text-left text-xs font-bold text-amber-900 hover:text-amber-950 flex justify-between items-center bg-amber-50 p-2 rounded border border-amber-200">
+              <span>⚠️ Cargar Faltantes Específicos</span>
               <span id="icono-desplegar">▼</span>
             </button>
 
@@ -125,13 +130,12 @@
       </div>
     </section>
 
-    <!-- PESTAÑA NUEVA: CONTROL DE AIRES ACONDICIONADOS -->
+    <!-- PESTAÑA: AIRES -->
     <section id="sec-aires" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         <h2 class="font-bold text-base text-gray-800 mb-1">Control de Aires Acondicionados</h2>
         <p class="text-xs text-gray-500 mb-3">Gestión de unidades de 12.000 BTU y 18.000 BTU.</p>
 
-        <!-- RESUMEN GENERAL DE AIRES -->
         <div class="grid grid-cols-2 gap-3 text-xs mb-4">
           <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
             <span class="font-bold text-blue-900 block text-xs">Aires 12.000 BTU</span>
@@ -143,7 +147,6 @@
           </div>
         </div>
 
-        <!-- FILTRO DE NIVEL PARA AIRES -->
         <div class="flex justify-between items-center mb-3 border-t pt-3">
           <label class="text-xs font-bold text-gray-700">Filtrar por Nivel / Piso:</label>
           <select id="select-nivel-aires" onchange="renderAiresPiso()" class="p-1 border rounded bg-gray-50 text-xs font-bold">
@@ -156,7 +159,6 @@
           </select>
         </div>
 
-        <!-- DETALLE POR DPTO EN EL PISO SELECCIONADO -->
         <div id="lista-aires-piso" class="space-y-2 max-h-[50vh] overflow-y-auto pr-1"></div>
       </div>
     </section>
@@ -405,7 +407,6 @@
       document.getElementById('stat-pendientes').innerText = dptosPendientes;
     }
 
-    // --- PESTAÑA DEDICADA DE AIRES ACONDICIONADOS ---
     function renderAiresPiso() {
       const niv = document.getElementById('select-nivel-aires').value;
       const cont = document.getElementById('lista-aires-piso');
@@ -414,7 +415,6 @@
       let tot12Req = 0, tot12Ent = 0;
       let tot18Req = 0, tot18Ent = 0;
 
-      // Calcular totales globales de aires
       NIVELES.forEach(n => {
         DPTOS_NUM.forEach(num => {
           const cod = `${n}${num}`;
@@ -447,7 +447,6 @@
         <p>Faltan: <b class="text-red-600">${tot18Req - tot18Ent} un.</b></p>
       `;
 
-      // Renderizar por departamento en el nivel seleccionado
       DPTOS_NUM.forEach(num => {
         const cod = `${niv}${num}`;
         const datos = obtenerDatosDpto(cod, num);
@@ -522,19 +521,57 @@
       for (let i = 1; i <= 8; i++) inf.innerHTML += generarBotonPlano(`${nivel}${i}`, i);
     }
 
+    function obtenerResumenFaltantesTexto(codigo, num, datos) {
+      const listaMat = obtenerListaBaseParaDpto(num);
+      let faltantesArr = [];
+
+      if (!datos.presion) {
+        faltantesArr.push("Fuga");
+      }
+
+      listaMat.forEach(m => {
+        if (m.cant > 0) {
+          const req = (datos.reqPersonalizado && datos.reqPersonalizado[m.id] !== undefined) ? datos.reqPersonalizado[m.id] : m.cant;
+          const ent = datos.entregado[m.id] || 0;
+          const diff = req - ent;
+          if (diff > 0) {
+            faltantesArr.push(`${diff} ${m.nombre.replace('Redondo sobreponer cálido ', 'Sob. ').replace('Redondo embutir cálido ', 'Emb. ').replace('Placa de ', 'Placa ')}`);
+          }
+        }
+      });
+
+      if (faltantesArr.length === 0) return "";
+      if (faltantesArr.length <= 2) return "Falta: " + faltantesArr.join(", ");
+      return `Falta: ${faltantesArr[0]}, +${faltantesArr.length - 1} más`;
+    }
+
     function generarBotonPlano(codigo, num) {
       const datos = obtenerDatosDpto(codigo, num);
       const est = calcularEstado(codigo, num, datos);
 
-      let style = 'bg-gray-100 border-gray-300 text-gray-700';
-      if (est === 'OK') style = 'bg-green-500 border-green-600 text-white';
-      if (est === 'PARCIAL') style = 'bg-yellow-400 border-yellow-500 text-gray-900';
+      let style = 'bg-gray-100 border-gray-400 text-gray-800';
+      let tagTexto = '[PENDIENTE]';
+      let detalleFaltanteHtml = '';
+
+      if (est === 'OK') {
+        style = 'bg-green-500 border-green-700 text-white font-bold';
+        tagTexto = '✔ [COMPLETO]';
+      } else if (est === 'PARCIAL') {
+        style = 'bg-yellow-300 border-yellow-600 text-yellow-950 font-bold';
+        tagTexto = '⚠ [INCOMPLETO]';
+        const txtFalt = obtenerResumenFaltantesTexto(codigo, num, datos);
+        if (txtFalt) {
+          detalleFaltanteHtml = `<span class="block text-[8px] leading-tight mt-0.5 text-red-900 font-extrabold underline">${txtFalt}</span>`;
+        }
+      }
 
       return `
         <button onclick="abrirDesplegableDpto('${codigo}', ${num})" 
-          class="p-2 rounded border font-bold text-xs flex flex-col items-center justify-center transition shadow-sm ${style}">
-          <span>${codigo}</span>
-          <span class="text-[8px] font-normal opacity-80">${ESPECIALES.includes(num) ? 'Esp' : 'Std'}</span>
+          class="p-2 rounded-lg border-2 text-xs flex flex-col items-center justify-center transition shadow-sm w-full ${style}">
+          <span class="text-sm font-extrabold">${codigo}</span>
+          <span class="text-[9px] uppercase tracking-wider font-black opacity-90">${tagTexto}</span>
+          ${detalleFaltanteHtml}
+          <span class="text-[8px] font-normal opacity-70 mt-0.5">${ESPECIALES.includes(num) ? 'Esp' : 'Std'}</span>
         </button>
       `;
     }
@@ -610,11 +647,11 @@
       if (datos.presion) {
         btnFuga.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-blue-600 text-white border-blue-700 shadow";
         txtFuga.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-blue-800 text-white";
-        txtFuga.innerText = "HECHO";
+        txtFuga.innerText = "✔ HECHO";
       } else {
         btnFuga.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-gray-50 text-gray-700 border-gray-300";
         txtFuga.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-gray-200 text-gray-600";
-        txtFuga.innerText = "PENDIENTE";
+        txtFuga.innerText = "✖ PENDIENTE";
       }
 
       const btnComp = document.getElementById('btn-realizado-completo');
@@ -624,15 +661,15 @@
       if (est === 'OK') {
         btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-green-600 text-white border-green-700 shadow";
         txtComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-green-800 text-white";
-        txtComp.innerText = "REALIZADO 100%";
+        txtComp.innerText = "✔ REALIZADO 100%";
       } else if (est === 'PARCIAL') {
         btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-yellow-100 text-yellow-900 border-yellow-400";
         txtComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-yellow-300 text-yellow-900";
-        txtComp.innerText = "PARCIAL / CON FALTANTES";
+        txtComp.innerText = "⚠ INCOMPLETO / CON FALTANTES";
       } else {
         btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-gray-50 text-gray-700 border-gray-300";
         txtComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-gray-200 text-gray-600";
-        txtComp.innerText = "SIN INICIAR";
+        txtComp.innerText = "✖ SIN INICIAR";
       }
     }
 
@@ -646,24 +683,42 @@
       actualizarPorcentajeAvanceObra();
     }
 
-    function marcarTodoRealizado() {
+    function toggleEstadoRealizadoCompleto() {
       if (!dptoSeleccionadoCod) return;
       const datos = dptosDatos[dptoSeleccionadoCod];
-      const listaMat = obtenerListaBaseParaDpto(numDptoSeleccionado);
+      const num = numDptoSeleccionado;
+      const estActual = calcularEstado(dptoSeleccionadoCod, num, datos);
 
-      listaMat.forEach(m => {
-        if (m.cant > 0) {
-          const req = (datos.reqPersonalizado && datos.reqPersonalizado[m.id] !== undefined) ? datos.reqPersonalizado[m.id] : m.cant;
-          datos.entregado[m.id] = req;
-        }
-      });
+      if (estActual === 'OK') {
+        deshacerMarcaError();
+      } else {
+        const listaMat = obtenerListaBaseParaDpto(num);
+        listaMat.forEach(m => {
+          if (m.cant > 0) {
+            const req = (datos.reqPersonalizado && datos.reqPersonalizado[m.id] !== undefined) ? datos.reqPersonalizado[m.id] : m.cant;
+            datos.entregado[m.id] = req;
+          }
+        });
+        datos.presion = true;
+        guardarDatos();
+        actualizarUIBotonesPrincipales(datos, num);
+        renderListaFaltantes(dptoSeleccionadoCod, num, datos);
+        renderPlano();
+        actualizarPorcentajeAvanceObra();
+      }
+    }
 
-      datos.presion = true;
+    function deshacerMarcaError() {
+      if (!dptoSeleccionadoCod) return;
+      const datos = dptosDatos[dptoSeleccionadoCod];
+      datos.entregado = {};
+      datos.presion = false;
       guardarDatos();
       actualizarUIBotonesPrincipales(datos, numDptoSeleccionado);
       renderListaFaltantes(dptoSeleccionadoCod, numDptoSeleccionado, datos);
       renderPlano();
       actualizarPorcentajeAvanceObra();
+      alert(`Se restableció el departamento ${dptoSeleccionadoCod}. Podés volver a cargar las cantidades manualmente.`);
     }
 
     function toggleListaFaltantes() {
@@ -693,12 +748,12 @@
             <div class="bg-gray-50 p-2 rounded border text-xs flex justify-between items-center">
               <div class="flex-1">
                 <span class="font-bold text-gray-800 block">${m.nombre}</span>
-                <span class="text-[10px] ${faltante > 0 ? 'text-red-600 font-bold' : 'text-green-600'}">
-                  ${faltante > 0 ? 'Faltan: ' + faltante : 'Completo'}
+                <span class="text-[10px] ${faltante > 0 ? 'text-red-700 font-extrabold' : 'text-green-700 font-bold'}">
+                  ${faltante > 0 ? 'Faltan: ' + faltante : '✔ COMPLETO'}
                 </span>
               </div>
               <div class="flex items-center gap-1">
-                <span class="text-[10px] text-gray-400">Instalado:</span>
+                <span class="text-[10px] text-gray-500 font-semibold">Instalado:</span>
                 <input type="number" value="${ent}" min="0" onchange="actualizarEntregadoDpto('${codigo}', '${m.id}', this.value)" class="w-14 p-1 border rounded text-center font-bold text-xs bg-white">
               </div>
             </div>
