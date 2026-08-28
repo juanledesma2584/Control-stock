@@ -126,22 +126,27 @@
       </div>
 
       <div class="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
-        <span class="text-xs font-bold text-gray-700 block mb-1">Estado General del Departamento:</span>
+        <span class="text-xs font-bold text-gray-700 block mb-1">Acciones Rápidas del Departamento:</span>
+        
         <button id="btn-prueba-fuga" onclick="togglePruebaFuga()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
           <span>💧 Prueba de Fuga / Presión</span>
           <span id="txt-estado-fuga" class="text-[10px] px-2 py-0.5 rounded font-bold">PENDIENTE</span>
         </button>
 
-        <button id="btn-realizado-completo" onclick="marcarDepartamento100Ok()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-green-600 text-white border-green-700 shadow">
-          <span>✅ Marcar Departamento 100% Completo</span>
-          <span class="text-[10px] px-2 py-0.5 rounded font-bold bg-green-800 text-white">100% OK</span>
+        <button id="btn-toggle-completar" onclick="toggleCompletarOReiniciar()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between shadow transition">
+          <span id="label-btn-completar">✅ Marcar Departamento 100% Completo</span>
+          <span id="badge-btn-completar" class="text-[10px] px-2 py-0.5 rounded font-bold bg-green-800 text-white">100% OK</span>
+        </button>
+
+        <button onclick="marcarQueFaltaTodo()" class="w-full py-2 px-3 rounded-lg border border-red-200 bg-red-50 text-red-800 font-bold text-xs flex items-center justify-center gap-1 hover:bg-red-100">
+          ⚠️ Marcar Sin Iniciar (Falta el 100% de Materiales)
         </button>
       </div>
 
       <div class="space-y-2 pt-2">
         <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl">
           <h3 class="font-bold text-sm text-amber-900 leading-tight">¿Qué le falta a este departamento?</h3>
-          <p class="text-[11px] text-amber-800 mt-0.5">Por defecto todo está en 0 (Completo). Ingresá solo la cantidad de unidades que faltan instalar.</p>
+          <p class="text-[11px] text-amber-800 mt-0.5">Ingresá la cantidad de unidades que faltan instalar. Si no falta nada, dejá en 0.</p>
         </div>
 
         <div id="contenedor-reporte-faltantes" class="space-y-2 pt-1">
@@ -307,10 +312,10 @@
       return defecto;
     }
 
-    let materialesStd = cargarConFallback('obra_mat_std_v11', 'obra_mat_std_v10', JSON.parse(JSON.stringify(plantillaBaseInicialStd)));
-    let materialesEsp = cargarConFallback('obra_mat_esp_v11', 'obra_mat_esp_v10', JSON.parse(JSON.stringify(plantillaBaseInicialEsp)));
-    let dptosDatos = cargarConFallback('obra_dptos_datos_v11', 'obra_dptos_datos_v10', {});
-    let deposito = cargarConFallback('obra_deposito_v11', 'obra_deposito_v10', {});
+    let materialesStd = cargarConFallback('obra_mat_std_v12', 'obra_mat_std_v11', JSON.parse(JSON.stringify(plantillaBaseInicialStd)));
+    let materialesEsp = cargarConFallback('obra_mat_esp_v12', 'obra_mat_esp_v11', JSON.parse(JSON.stringify(plantillaBaseInicialEsp)));
+    let dptosDatos = cargarConFallback('obra_dptos_datos_v12', 'obra_dptos_datos_v11', {});
+    let deposito = cargarConFallback('obra_deposito_v12', 'obra_deposito_v11', {});
 
     let dptoSeleccionadoCod = null;
     let numDptoSeleccionado = null;
@@ -360,7 +365,7 @@
     function obtenerDatosDpto(codigo) {
       if (!dptosDatos[codigo]) {
         dptosDatos[codigo] = {
-          presion: true,
+          presion: false,
           faltantes: {}
         };
       }
@@ -373,7 +378,7 @@
 
       listaMat.forEach(m => {
         if (m && m.cant > 0) {
-          const falt = (datos.faltantes && datos.faltantes[m.id]) ? datos.faltantes[m.id] : 0;
+          const falt = (datos.faltantes && datos.faltantes[m.id] !== undefined) ? datos.faltantes[m.id] : 0;
           if (falt > 0) tieneFaltantesInsumos = true;
         }
       });
@@ -401,7 +406,7 @@
           listaMat.forEach(m => {
             if (m && m.cant > 0) {
               const req = m.cant;
-              const falt = (datos.faltantes && datos.faltantes[m.id]) ? datos.faltantes[m.id] : 0;
+              const falt = (datos.faltantes && datos.faltantes[m.id] !== undefined) ? datos.faltantes[m.id] : 0;
               const instalado = Math.max(0, req - falt);
               
               dptoReq += req;
@@ -442,7 +447,7 @@
 
         listaMat.forEach(m => {
           if (m && m.cant > 0) {
-            const falt = (datos.faltantes && datos.faltantes[m.id]) ? datos.faltantes[m.id] : 0;
+            const falt = (datos.faltantes && datos.faltantes[m.id] !== undefined) ? datos.faltantes[m.id] : 0;
             if (falt > 0) {
               let nomCorto = m.nombre ? m.nombre.replace('Redondo sobreponer cálido ', 'Sob. ').replace('Redondo embutir cálido ', 'Emb. ').replace('Aire Acondicionado ', 'Aire ').replace('Placa de ', 'Placa ') : 'Item';
               faltantesArr.push(`${falt} ${nomCorto}`);
@@ -518,13 +523,13 @@
       document.getElementById('pantalla-titulo').innerText = `Departamento ${codigo}`;
       document.getElementById('pantalla-subtitulo').innerText = desc;
 
-      actualizarBotonFugaUI(datos);
+      actualizarUIBotonesDpto(codigo, num, datos);
       renderInsumosPantalla(codigo, num, datos);
 
       document.getElementById('pantalla-dpto').classList.remove('hidden');
     }
 
-    function actualizarBotonFugaUI(datos) {
+    function actualizarUIBotonesDpto(codigo, num, datos) {
       const btnFuga = document.getElementById('btn-prueba-fuga');
       const txtFuga = document.getElementById('txt-estado-fuga');
 
@@ -537,6 +542,23 @@
         txtFuga.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-red-700 text-white";
         txtFuga.innerText = "✖ PENDIENTE";
       }
+
+      const est = calcularEstado(codigo, num, datos);
+      const btnComp = document.getElementById('btn-toggle-completar');
+      const lblComp = document.getElementById('label-btn-completar');
+      const badgeComp = document.getElementById('badge-btn-completar');
+
+      if (est === 'OK') {
+        btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-amber-500 text-white border-amber-600 shadow";
+        lblComp.innerText = "🔄 Desmarcar / Restablecer como Pendiente";
+        badgeComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-amber-800 text-white";
+        badgeComp.innerText = "DESMARCAR";
+      } else {
+        btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-green-600 text-white border-green-700 shadow";
+        lblComp.innerText = "✅ Marcar Departamento 100% Completo";
+        badgeComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-green-800 text-white";
+        badgeComp.innerText = "MARCAR 100%";
+      }
     }
 
     function togglePruebaFuga() {
@@ -544,18 +566,46 @@
       const datos = dptosDatos[dptoSeleccionadoCod];
       datos.presion = !datos.presion;
       guardarDatos();
-      actualizarBotonFugaUI(datos);
+      actualizarUIBotonesDpto(dptoSeleccionadoCod, numDptoSeleccionado, datos);
       renderPlano();
       actualizarPorcentajeAvanceObra();
     }
 
-    function marcarDepartamento100Ok() {
+    function toggleCompletarOReiniciar() {
       if (!dptoSeleccionadoCod) return;
       const datos = dptosDatos[dptoSeleccionadoCod];
+      const est = calcularEstado(dptoSeleccionadoCod, numDptoSeleccionado, datos);
+
+      if (est === 'OK') {
+        // Estaba 100% completo, lo desmarcamos
+        marcarQueFaltaTodo();
+      } else {
+        // Estaba incompleto, lo marcamos 100% OK
+        datos.faltantes = {};
+        datos.presion = true;
+        guardarDatos();
+        actualizarUIBotonesDpto(dptoSeleccionadoCod, numDptoSeleccionado, datos);
+        renderInsumosPantalla(dptoSeleccionadoCod, numDptoSeleccionado, datos);
+        renderPlano();
+        actualizarPorcentajeAvanceObra();
+      }
+    }
+
+    function marcarQueFaltaTodo() {
+      if (!dptoSeleccionadoCod) return;
+      const datos = dptosDatos[dptoSeleccionadoCod];
+      const listaMat = obtenerListaBaseParaDpto(numDptoSeleccionado);
+      
       datos.faltantes = {};
-      datos.presion = true;
+      listaMat.forEach(m => {
+        if (m && m.cant > 0) {
+          datos.faltantes[m.id] = m.cant;
+        }
+      });
+      datos.presion = false;
+
       guardarDatos();
-      actualizarBotonFugaUI(datos);
+      actualizarUIBotonesDpto(dptoSeleccionadoCod, numDptoSeleccionado, datos);
       renderInsumosPantalla(dptoSeleccionadoCod, numDptoSeleccionado, datos);
       renderPlano();
       actualizarPorcentajeAvanceObra();
@@ -598,6 +648,7 @@
       }
 
       guardarDatos();
+      actualizarUIBotonesDpto(codigo, numDptoSeleccionado, dptosDatos[codigo]);
       renderInsumosPantalla(codigo, numDptoSeleccionado, dptosDatos[codigo]);
       renderPlano();
       actualizarPorcentajeAvanceObra();
@@ -615,8 +666,8 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_dptos_datos_v12', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_dptos_datos_v11', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_dptos_datos_v10', JSON.stringify(dptosDatos));
       } catch (e) {
         console.error(e);
       }
@@ -826,13 +877,13 @@
         if (input) deposito[m.id] = parseInt(input.value) || 0;
       });
 
+      localStorage.setItem('obra_mat_std_v12', JSON.stringify(materialesStd));
+      localStorage.setItem('obra_mat_esp_v12', JSON.stringify(materialesEsp));
+      localStorage.setItem('obra_deposito_v12', JSON.stringify(deposito));
+
       localStorage.setItem('obra_mat_std_v11', JSON.stringify(materialesStd));
       localStorage.setItem('obra_mat_esp_v11', JSON.stringify(materialesEsp));
       localStorage.setItem('obra_deposito_v11', JSON.stringify(deposito));
-
-      localStorage.setItem('obra_mat_std_v10', JSON.stringify(materialesStd));
-      localStorage.setItem('obra_mat_esp_v10', JSON.stringify(materialesEsp));
-      localStorage.setItem('obra_deposito_v10', JSON.stringify(deposito));
 
       actualizarPorcentajeAvanceObra();
       alert('¡Todo guardado correctamente!');
