@@ -302,7 +302,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v16`, `${prefijo}_v15`, `${prefijo}_v14`, `${prefijo}_v13`, `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`
+        `${prefijo}_v17`, `${prefijo}_v16`, `${prefijo}_v15`, `${prefijo}_v14`, `${prefijo}_v13`, `${prefijo}_v12`
       ];
       for (let c of claves) {
         try {
@@ -323,36 +323,47 @@
     let dptosDatos = buscarEnCualquierVersion('obra_dptos_datos', {});
     let deposito = buscarEnCualquierVersion('obra_deposito', {});
 
-    // CORRECCIÓN AUTOMÁTICA DEL AIRE DE 18.000 BTU DUPLICADO
-    function corregirDuplicadoAire18() {
-      // 1. Verificar si en la plantilla especial no existe o está mal nombrado
-      let ac18Esp = materialesEsp.find(m => m.id === 'ac18');
-      if (!ac18Esp) {
-        materialesEsp.push({ id: 'ac18', nombre: 'Aire de 18.000btu', cant: 0 });
-      } else {
-        ac18Esp.nombre = 'Aire de 18.000btu';
-      }
-
-      // 2. Corregir IDs duplicados en el deposito
-      let clavesDep = Object.keys(deposito);
-      let duplicados12 = clavesDep.filter(k => {
-        let mat = materialesStd.concat(materialesEsp).find(m => m.id === k);
-        return mat && mat.nombre === 'Aire de 12.000btu';
+    // UNIFICACIÓN Y LIMPIEZA POR NOMBRE EXACTO
+    function unificarMaterialesDuplicados() {
+      // 1. Emparejar IDs en plantillas si comparten el mismo nombre exacto
+      materialesEsp.forEach(esp => {
+        let stdMatch = materialesStd.find(s => s.nombre.trim().toLowerCase() === esp.nombre.trim().toLowerCase());
+        if (stdMatch) {
+          // Migrar faltantes registrados en dptos al ID de la plantilla estándar
+          if (esp.id !== stdMatch.id) {
+            Object.keys(dptosDatos).forEach(cod => {
+              if (dptosDatos[cod] && dptosDatos[cod].faltantes && dptosDatos[cod].faltantes[esp.id] !== undefined) {
+                dptosDatos[cod].faltantes[stdMatch.id] = dptosDatos[cod].faltantes[esp.id];
+                delete dptosDatos[cod].faltantes[esp.id];
+              }
+            });
+            esp.id = stdMatch.id;
+          }
+        }
       });
 
-      if (duplicados12.length > 1) {
-        // Renombrar la segunda clave a ac18
-        let segundaClave = duplicados12[1];
-        if (segundaClave !== 'ac12') {
-          deposito['ac18'] = deposito[segundaClave];
-          delete deposito[segundaClave];
+      // 2. Unificar Depósito por ID
+      let depositoUnificado = {};
+      let todos = [...materialesStd, ...materialesEsp];
+
+      Object.keys(deposito).forEach(key => {
+        let mat = todos.find(m => m.id === key);
+        let keyDestino = key;
+
+        if (mat) {
+          // Buscar si hay un primer insumo con ese mismo nombre
+          let primerMat = todos.find(m => m.nombre.trim().toLowerCase() === mat.nombre.trim().toLowerCase());
+          if (primerMat) keyDestino = primerMat.id;
         }
-      }
-      
+
+        depositoUnificado[keyDestino] = (depositoUnificado[keyDestino] || 0) + (deposito[key] || 0);
+      });
+
+      deposito = depositoUnificado;
       guardarDatos();
     }
 
-    corregirDuplicadoAire18();
+    unificarMaterialesDuplicados();
 
     let dptoSeleccionadoCod = null;
     let numDptoSeleccionado = null;
@@ -385,13 +396,13 @@
       let listaMod = JSON.parse(JSON.stringify(materialesEsp));
       
       if (num === 1 || num === 8) {
-        let ac12 = listaMod.find(m => m.id === 'ac12');
-        let ac18 = listaMod.find(m => m.id === 'ac18');
+        let ac12 = listaMod.find(m => m.nombre.toLowerCase().includes('12.000'));
+        let ac18 = listaMod.find(m => m.nombre.toLowerCase().includes('18.000'));
         if (ac12) ac12.cant = 2;
         if (ac18) ac18.cant = 1;
       } else if (num === 9 || num === 16) {
-        let ac12 = listaMod.find(m => m.id === 'ac12');
-        let ac18 = listaMod.find(m => m.id === 'ac18');
+        let ac12 = listaMod.find(m => m.nombre.toLowerCase().includes('12.000'));
+        let ac18 = listaMod.find(m => m.nombre.toLowerCase().includes('18.000'));
         if (ac12) ac12.cant = 3;
         if (ac18) ac18.cant = 0;
       }
@@ -710,15 +721,15 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v17', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp_v17', JSON.stringify(materialesEsp));
+        localStorage.setItem('obra_dptos_datos_v17', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v17', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v16', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp_v16', JSON.stringify(materialesEsp));
         localStorage.setItem('obra_dptos_datos_v16', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v16', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v15', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp_v15', JSON.stringify(materialesEsp));
-        localStorage.setItem('obra_dptos_datos_v15', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v15', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
@@ -801,8 +812,9 @@
               if (m && m.cant > 0) {
                 const falt = (datos.faltantes && datos.faltantes[m.id]) ? datos.faltantes[m.id] : 0;
                 if (falt > 0) {
-                  if (!acumuladoPend[m.id]) acumuladoPend[m.id] = { nombre: m.nombre, cant: 0 };
-                  acumuladoPend[m.id].cant += falt;
+                  let keyNombre = m.nombre.trim();
+                  if (!acumuladoPend[keyNombre]) acumuladoPend[keyNombre] = { nombre: keyNombre, id: m.id, cant: 0 };
+                  acumuladoPend[keyNombre].cant += falt;
                 }
               }
             });
@@ -810,9 +822,9 @@
         }
       });
 
-      Object.keys(acumuladoPend).forEach(matId => {
-        const item = acumuladoPend[matId];
-        const disp = deposito[matId] || 0;
+      Object.keys(acumuladoPend).forEach(nombreKey => {
+        const item = acumuladoPend[nombreKey];
+        const disp = deposito[item.id] || 0;
         const aComprar = Math.max(0, item.cant - disp);
 
         if (aComprar > 0) listaPedidoCompraCalculada.push({ nombre: item.nombre, cant: aComprar });
@@ -844,7 +856,7 @@
       materialesStd.forEach((m, idx) => {
         contStd.innerHTML += `
           <div class="flex items-center gap-2 bg-gray-50 p-1.5 rounded border text-xs">
-            <input type="text" value="${m.nombre}" onchange="materialesStd[${idx}].nombre = this.value" class="flex-1 p-1 border rounded">
+            <input type="text" value="${m.nombre}" onchange="materialesStd[${idx}].nombre = this.value; unificarMaterialesDuplicados();" class="flex-1 p-1 border rounded">
             <input type="number" value="${m.cant}" onchange="materialesStd[${idx}].cant = parseInt(this.value)||0" class="w-14 p-1 border rounded text-center">
             <button onclick="materialesStd.splice(${idx},1); renderGestionMateriales();" class="text-red-500 font-bold px-1">✕</button>
           </div>
@@ -856,7 +868,7 @@
       materialesEsp.forEach((m, idx) => {
         contEsp.innerHTML += `
           <div class="flex items-center gap-2 bg-blue-50/50 p-1.5 rounded border border-blue-200 text-xs">
-            <input type="text" value="${m.nombre}" onchange="materialesEsp[${idx}].nombre = this.value" class="flex-1 p-1 border rounded">
+            <input type="text" value="${m.nombre}" onchange="materialesEsp[${idx}].nombre = this.value; unificarMaterialesDuplicados();" class="flex-1 p-1 border rounded">
             <input type="number" value="${m.cant}" onchange="materialesEsp[${idx}].cant = parseInt(this.value)||0" class="w-14 p-1 border rounded text-center">
             <button onclick="materialesEsp.splice(${idx},1); renderGestionMateriales();" class="text-red-500 font-bold px-1">✕</button>
           </div>
@@ -866,19 +878,24 @@
       const contDep = document.getElementById('lista-deposito-gestion');
       contDep.innerHTML = '';
       
-      let todosLosItems = [...materialesStd];
-      materialesEsp.forEach(e => {
-        if (!todosLosItems.find(s => s.id === e.id)) todosLosItems.push(e);
-      });
+      let itemsUnicosDeposito = [];
+      let todosLosPlantilla = [...materialesStd, ...materialesEsp];
 
-      // Incluir también elementos agregados manualmente al depósito
-      Object.keys(deposito).forEach(k => {
-        if (!todosLosItems.find(s => s.id === k)) {
-          todosLosItems.push({ id: k, nombre: k.replace('m_', 'Insumo Extra ') });
+      todosLosPlantilla.forEach(m => {
+        if (!itemsUnicosDeposito.find(x => x.nombre.trim().toLowerCase() === m.nombre.trim().toLowerCase())) {
+          itemsUnicosDeposito.push({ id: m.id, nombre: m.nombre.trim() });
         }
       });
 
-      todosLosItems.forEach(m => {
+      Object.keys(deposito).forEach(k => {
+        let mat = todosLosPlantilla.find(x => x.id === k);
+        let nom = mat ? mat.nombre.trim() : k.replace('m_', 'Insumo Extra ');
+        if (!itemsUnicosDeposito.find(x => x.nombre.trim().toLowerCase() === nom.toLowerCase())) {
+          itemsUnicosDeposito.push({ id: k, nombre: nom });
+        }
+      });
+
+      itemsUnicosDeposito.forEach(m => {
         const val = deposito[m.id] || 0;
         contDep.innerHTML += `
           <div class="flex justify-between items-center bg-gray-50 p-1.5 rounded border text-xs">
@@ -893,7 +910,6 @@
     function eliminarDelDeposito(id) {
       if (confirm('¿Querés eliminar este ítem del stock del depósito?')) {
         delete deposito[id];
-        // Si además era un insumo adicional agregado, lo quitamos
         materialesStd = materialesStd.filter(m => m.id !== id);
         materialesEsp = materialesEsp.filter(m => m.id !== id);
         guardarTodoGestion();
@@ -903,16 +919,21 @@
     function agregarPlantilla(tipo) {
       const nomInput = document.getElementById(`nuevo-mat-${tipo}-nombre`);
       const cantInput = document.getElementById(`nuevo-mat-${tipo}-cant`);
-      const nom = nomInput.value;
+      const nom = nomInput.value.trim();
       const cant = parseInt(cantInput.value) || 0;
 
       if (nom && cant > 0) {
-        const nuevoItem = { id: 'm_' + Date.now(), nombre: nom, cant: cant };
+        // Verificar si existe en la otra plantilla para compartir id
+        let coincidencia = materialesStd.concat(materialesEsp).find(m => m.nombre.trim().toLowerCase() === nom.toLowerCase());
+        const idAUsar = coincidencia ? coincidencia.id : 'm_' + Date.now();
+
+        const nuevoItem = { id: idAUsar, nombre: nom, cant: cant };
         if (tipo === 'std') materialesStd.push(nuevoItem);
         if (tipo === 'esp') materialesEsp.push(nuevoItem);
 
         nomInput.value = '';
         cantInput.value = '';
+        unificarMaterialesDuplicados();
         renderGestionMateriales();
         actualizarPorcentajeAvanceObra();
       }
@@ -921,16 +942,18 @@
     function agregarArtefactoManualDeposito() {
       const nomInput = document.getElementById('nuevo-dep-nombre');
       const cantInput = document.getElementById('nuevo-dep-cant');
-      const nom = nomInput.value;
+      const nom = nomInput.value.trim();
       const cant = parseInt(cantInput.value) || 0;
 
       if (nom) {
-        const idNuevo = 'm_' + Date.now();
-        materialesStd.push({ id: idNuevo, nombre: nom, cant: 0 });
+        let coincidencia = materialesStd.concat(materialesEsp).find(m => m.nombre.trim().toLowerCase() === nom.toLowerCase());
+        const idNuevo = coincidencia ? coincidencia.id : 'm_' + Date.now();
+        
         deposito[idNuevo] = cant;
 
         nomInput.value = '';
         cantInput.value = '';
+        unificarMaterialesDuplicados();
         renderGestionMateriales();
       }
     }
