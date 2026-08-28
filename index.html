@@ -263,7 +263,6 @@
     const DPTOS_NUM = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     const ESPECIALES = [1, 8, 9, 16];
 
-    // CORREGIDO: Pico timbre configurado exactamente en 1 unidad
     const plantillaBaseInicialStd = [
       { id: 'ac12', nombre: 'Aire Acondicionado 12.000 BTU', cant: 2 },
       { id: 'l1', nombre: 'Redondo sobreponer cálido 30W', cant: 1 },
@@ -303,7 +302,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v14`, `${prefijo}_v13`, `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`, 
+        `${prefijo}_v15`, `${prefijo}_v14`, `${prefijo}_v13`, `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`, 
         `${prefijo}_v9`, `${prefijo}_v8`, `${prefijo}_v7`, `${prefijo}_v6`
       ];
       for (let c of claves) {
@@ -325,25 +324,30 @@
     let dptosDatos = buscarEnCualquierVersion('obra_dptos_datos', {});
     let deposito = buscarEnCualquierVersion('obra_deposito', {});
 
-    // AUTOCORRECCIÓN DE PLANTILLAS Y FALTANTES PREVIOS
-    function corregirValoresTimbre() {
-      // Corregir la plantilla guardada previamente en el navegador
-      let tbStd = materialesStd.find(m => m.id === 'tb');
-      if (tbStd) tbStd.cant = 1;
+    // CONSOLIDACIÓN DE TIMBRES (UNIFICACIÓN DE IDS ESP/STD)
+    function consolidarTimbresEspeciales() {
+      materialesEsp.forEach((m, idx) => {
+        if (m.id === 'tb_esp' || m.nombre.toLowerCase().includes('timbre')) {
+          m.id = 'tb';
+          m.cant = 1;
+        }
+      });
 
-      let tbEsp = materialesEsp.find(m => m.id === 'tb');
-      if (tbEsp) tbEsp.cant = 1;
-
-      // Corregir registros en dptos que tengan más de 1 pico timbre anotado como faltante
       Object.keys(dptosDatos).forEach(cod => {
-        if (dptosDatos[cod] && dptosDatos[cod].faltantes && dptosDatos[cod].faltantes['tb'] > 1) {
-          dptosDatos[cod].faltantes['tb'] = 1;
+        if (dptosDatos[cod] && dptosDatos[cod].faltantes) {
+          if (dptosDatos[cod].faltantes['tb_esp'] !== undefined) {
+            dptosDatos[cod].faltantes['tb'] = dptosDatos[cod].faltantes['tb_esp'];
+            delete dptosDatos[cod].faltantes['tb_esp'];
+          }
+          if (dptosDatos[cod].faltantes['tb'] > 1) {
+            dptosDatos[cod].faltantes['tb'] = 1;
+          }
         }
       });
       guardarDatos();
     }
 
-    corregirValoresTimbre();
+    consolidarTimbresEspeciales();
 
     let dptoSeleccionadoCod = null;
     let numDptoSeleccionado = null;
@@ -701,15 +705,15 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v15', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp_v15', JSON.stringify(materialesEsp));
+        localStorage.setItem('obra_dptos_datos_v15', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v15', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v14', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp_v14', JSON.stringify(materialesEsp));
         localStorage.setItem('obra_dptos_datos_v14', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v14', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v13', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp_v13', JSON.stringify(materialesEsp));
-        localStorage.setItem('obra_dptos_datos_v13', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v13', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
