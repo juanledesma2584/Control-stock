@@ -300,22 +300,31 @@
       { id: 'tm_mono', nombre: 'Llave TM Monofásica 20A', cant: 6 }
     ];
 
-    function cargarConFallback(claveNueva, claveVieja, defecto) {
-      try {
-        const vNueva = localStorage.getItem(claveNueva);
-        if (vNueva) return JSON.parse(vNueva);
-        const vVieja = localStorage.getItem(claveVieja);
-        if (vVieja) return JSON.parse(vVieja);
-      } catch (e) {
-        console.error(e);
+    // BUSCADOR INTELIGENTE DE MEMORIA HISTÓRICA
+    function buscarEnCualquierVersion(prefijo, defecto) {
+      const claves = [
+        `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`, 
+        `${prefijo}_v9`, `${prefijo}_v8`, `${prefijo}_v7`, 
+        `${prefijo}_v6`, `${prefijo}_v5`, `${prefijo}_v4`
+      ];
+      for (let c of claves) {
+        try {
+          const res = localStorage.getItem(c);
+          if (res) {
+            const parsed = JSON.parse(res);
+            if (parsed && (Object.keys(parsed).length > 0 || Array.isArray(parsed) && parsed.length > 0)) {
+              return parsed;
+            }
+          }
+        } catch (e) {}
       }
       return defecto;
     }
 
-    let materialesStd = cargarConFallback('obra_mat_std_v12', 'obra_mat_std_v11', JSON.parse(JSON.stringify(plantillaBaseInicialStd)));
-    let materialesEsp = cargarConFallback('obra_mat_esp_v12', 'obra_mat_esp_v11', JSON.parse(JSON.stringify(plantillaBaseInicialEsp)));
-    let dptosDatos = cargarConFallback('obra_dptos_datos_v12', 'obra_dptos_datos_v11', {});
-    let deposito = cargarConFallback('obra_deposito_v12', 'obra_deposito_v11', {});
+    let materialesStd = buscarEnCualquierVersion('obra_mat_std', JSON.parse(JSON.stringify(plantillaBaseInicialStd)));
+    let materialesEsp = buscarEnCualquierVersion('obra_mat_esp', JSON.parse(JSON.stringify(plantillaBaseInicialEsp)));
+    let dptosDatos = buscarEnCualquierVersion('obra_dptos_datos', {});
+    let deposito = buscarEnCualquierVersion('obra_deposito', {});
 
     let dptoSeleccionadoCod = null;
     let numDptoSeleccionado = null;
@@ -577,10 +586,8 @@
       const est = calcularEstado(dptoSeleccionadoCod, numDptoSeleccionado, datos);
 
       if (est === 'OK') {
-        // Estaba 100% completo, lo desmarcamos
         marcarQueFaltaTodo();
       } else {
-        // Estaba incompleto, lo marcamos 100% OK
         datos.faltantes = {};
         datos.presion = true;
         guardarDatos();
@@ -666,8 +673,22 @@
 
     function guardarDatos() {
       try {
+        const claves = [
+          'obra_mat_std_v12', 'obra_mat_std_v11', 'obra_mat_std_v10',
+          'obra_mat_esp_v12', 'obra_mat_esp_v11', 'obra_mat_esp_v10',
+          'obra_dptos_datos_v12', 'obra_dptos_datos_v11', 'obra_dptos_datos_v10',
+          'obra_deposito_v12', 'obra_deposito_v11', 'obra_deposito_v10'
+        ];
+        
+        localStorage.setItem('obra_mat_std_v12', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp_v12', JSON.stringify(materialesEsp));
         localStorage.setItem('obra_dptos_datos_v12', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v12', JSON.stringify(deposito));
+
+        localStorage.setItem('obra_mat_std_v11', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp_v11', JSON.stringify(materialesEsp));
         localStorage.setItem('obra_dptos_datos_v11', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v11', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
@@ -877,14 +898,7 @@
         if (input) deposito[m.id] = parseInt(input.value) || 0;
       });
 
-      localStorage.setItem('obra_mat_std_v12', JSON.stringify(materialesStd));
-      localStorage.setItem('obra_mat_esp_v12', JSON.stringify(materialesEsp));
-      localStorage.setItem('obra_deposito_v12', JSON.stringify(deposito));
-
-      localStorage.setItem('obra_mat_std_v11', JSON.stringify(materialesStd));
-      localStorage.setItem('obra_mat_esp_v11', JSON.stringify(materialesEsp));
-      localStorage.setItem('obra_deposito_v11', JSON.stringify(deposito));
-
+      guardarDatos();
       actualizarPorcentajeAvanceObra();
       alert('¡Todo guardado correctamente!');
     }
