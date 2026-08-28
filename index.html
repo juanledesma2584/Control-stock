@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Control de Instalaciones</title>
+  
+  <!-- ÍCONO PARA PANTALLA DE INICIO (PINZA DE ELECTRICISTA / HERRAMIENTAS) -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231d4ed8'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><path d='M30 25 L45 40 L35 50 L20 35 Z M70 25 L55 40 L65 50 L80 35 Z' fill='%23ffffff'/><circle cx='50' cy='45' r='8' fill='%23f59e0b'/><path d='M42 50 L30 80 L38 85 L50 58 Z M58 50 L70 80 L62 85 L50 58 Z' fill='%23dc2626'/></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231d4ed8'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><path d='M30 25 L45 40 L35 50 L20 35 Z M70 25 L55 40 L65 50 L80 35 Z' fill='%23ffffff'/><circle cx='50' cy='45' r='8' fill='%23f59e0b'/><path d='M42 50 L30 80 L38 85 L50 58 Z M58 50 L70 80 L62 85 L50 58 Z' fill='%23dc2626'/></svg>">
+
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .tab-active { border-bottom: 3px solid #1d4ed8; color: #1d4ed8; font-weight: bold; }
@@ -71,20 +76,18 @@
 
           <!-- BOTONES PRINCIPALES DE ACCIÓN RÁPIDA -->
           <div class="space-y-2">
-            <!-- Botón 1: Prueba de Fuga/Presión -->
             <button id="btn-prueba-fuga" onclick="togglePruebaFuga()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
               <span>💧 Prueba de Fuga / Presión</span>
               <span id="txt-estado-fuga" class="text-[10px] px-2 py-0.5 rounded font-bold">Pendiente</span>
             </button>
 
-            <!-- Botón 2: Marcado de Realizado Completo -->
             <button id="btn-realizado-completo" onclick="marcarTodoRealizado()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
               <span>✅ Instalación Realizada / Completa</span>
               <span id="txt-estado-completo" class="text-[10px] px-2 py-0.5 rounded font-bold">Incompleto</span>
             </button>
           </div>
 
-          <!-- BOTÓN PARA DESPLEGAR DETALLE DE FALTANTES (SOLO SI HACE FALTA) -->
+          <!-- BOTÓN PARA DESPLEGAR DETALLE DE FALTANTES -->
           <div class="pt-2 border-t">
             <button onclick="toggleListaFaltantes()" class="w-full text-left text-xs font-bold text-amber-700 hover:text-amber-900 flex justify-between items-center bg-amber-50 p-2 rounded border border-amber-200">
               <span>⚠️ Incompleto / Cargar Faltantes Específicos</span>
@@ -92,7 +95,7 @@
             </button>
 
             <div id="contenedor-faltantes" class="hidden mt-2 space-y-1.5 max-h-[35vh] overflow-y-auto pr-1 pt-1">
-              <!-- Lista desplegable por artefacto -->
+              <!-- Lista por artefacto -->
             </div>
           </div>
         </div>
@@ -194,7 +197,7 @@
         </div>
       </div>
 
-      <!-- STOCK DEPÓSITO CON AGREGADO MANUAL -->
+      <!-- STOCK DEPÓSITO -->
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         <h2 class="font-bold text-base text-gray-800 mb-1">4. Stock Físico en Depósito</h2>
         <div id="lista-deposito-gestion" class="space-y-1.5 max-h-[30vh] overflow-y-auto pr-1"></div>
@@ -334,8 +337,6 @@
       const datos = obtenerDatosDpto(codigo, num);
 
       document.getElementById('desplegable-titulo').innerText = `Dpto ${codigo} ${ESPECIALES.includes(num) ? '(Especial)' : '(Estándar)'}`;
-      
-      // Ocultar sección de faltantes por defecto
       document.getElementById('contenedor-faltantes').classList.add('hidden');
       document.getElementById('icono-desplegar').innerText = '▼';
 
@@ -346,7 +347,6 @@
     }
 
     function actualizarUIBotonesPrincipales(datos, num) {
-      // Estado Botón Fuga
       const btnFuga = document.getElementById('btn-prueba-fuga');
       const txtFuga = document.getElementById('txt-estado-fuga');
 
@@ -360,7 +360,6 @@
         txtFuga.innerText = "PENDIENTE";
       }
 
-      // Estado Botón Instalación Completa
       const btnComp = document.getElementById('btn-realizado-completo');
       const txtComp = document.getElementById('txt-estado-completo');
       const est = calcularEstado(dptoSeleccionadoCod, num, datos);
@@ -394,13 +393,12 @@
       const datos = dptosDatos[dptoSeleccionadoCod];
       const listaMat = obtenerListaBaseParaDpto(numDptoSeleccionado);
 
-      // Marcar 100% de entrega en todos los ítems
       listaMat.forEach(m => {
         const req = (datos.reqPersonalizado && datos.reqPersonalizado[m.id] !== undefined) ? datos.reqPersonalizado[m.id] : m.cant;
         datos.entregado[m.id] = req;
       });
 
-      datos.presion = true; // Marca también realizada la prueba
+      datos.presion = true;
       guardarDatos();
       actualizarUIBotonesPrincipales(datos, numDptoSeleccionado);
       renderListaFaltantes(dptoSeleccionadoCod, numDptoSeleccionado, datos);
