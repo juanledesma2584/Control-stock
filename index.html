@@ -37,9 +37,10 @@
   <!-- Navegación -->
   <nav class="bg-white shadow flex justify-around border-b border-gray-200 text-xs font-medium sticky top-[66px] z-20">
     <button id="tab1" onclick="switchTab('plano')" class="py-3 px-1 tab-active flex-1 text-center">Plano / Dptos</button>
-    <button id="tab2" onclick="switchTab('entregas')" class="py-3 px-1 flex-1 text-center">Vista Entregas</button>
-    <button id="tab3" onclick="switchTab('pedidos')" class="py-3 px-1 flex-1 text-center">Pedidos / Faltantes</button>
-    <button id="tab4" onclick="switchTab('materiales')" class="py-3 px-1 flex-1 text-center">Gestión Materiales</button>
+    <button id="tab2" onclick="switchTab('aires')" class="py-3 px-1 flex-1 text-center text-blue-700 font-bold">❄️ Aires Acond.</button>
+    <button id="tab3" onclick="switchTab('entregas')" class="py-3 px-1 flex-1 text-center">Vista Entregas</button>
+    <button id="tab4" onclick="switchTab('pedidos')" class="py-3 px-1 flex-1 text-center">Pedidos / Faltantes</button>
+    <button id="tab5" onclick="switchTab('materiales')" class="py-3 px-1 flex-1 text-center">Gestión Materiales</button>
   </nav>
 
   <main class="p-3 max-w-4xl mx-auto space-y-4">
@@ -124,7 +125,43 @@
       </div>
     </section>
 
-    <!-- PESTAÑA 2: VISTA DE ENTREGAS -->
+    <!-- PESTAÑA NUEVA: CONTROL DE AIRES ACONDICIONADOS -->
+    <section id="sec-aires" class="hidden space-y-4">
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <h2 class="font-bold text-base text-gray-800 mb-1">Control de Aires Acondicionados</h2>
+        <p class="text-xs text-gray-500 mb-3">Gestión de unidades de 12.000 BTU y 18.000 BTU.</p>
+
+        <!-- RESUMEN GENERAL DE AIRES -->
+        <div class="grid grid-cols-2 gap-3 text-xs mb-4">
+          <div class="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <span class="font-bold text-blue-900 block text-xs">Aires 12.000 BTU</span>
+            <div id="resumen-ac12" class="mt-1 space-y-0.5 text-[11px] text-gray-700"></div>
+          </div>
+          <div class="p-3 bg-indigo-50 border border-indigo-200 rounded-lg">
+            <span class="font-bold text-indigo-900 block text-xs">Aires 18.000 BTU</span>
+            <div id="resumen-ac18" class="mt-1 space-y-0.5 text-[11px] text-gray-700"></div>
+          </div>
+        </div>
+
+        <!-- FILTRO DE NIVEL PARA AIRES -->
+        <div class="flex justify-between items-center mb-3 border-t pt-3">
+          <label class="text-xs font-bold text-gray-700">Filtrar por Nivel / Piso:</label>
+          <select id="select-nivel-aires" onchange="renderAiresPiso()" class="p-1 border rounded bg-gray-50 text-xs font-bold">
+            <option value="A">Nivel A (Piso 1)</option>
+            <option value="B">Nivel B (Piso 2)</option>
+            <option value="C">Nivel C (Piso 3)</option>
+            <option value="D">Nivel D (Piso 4)</option>
+            <option value="E">Nivel E (Piso 5)</option>
+            <option value="F">Nivel F (Piso 6)</option>
+          </select>
+        </div>
+
+        <!-- DETALLE POR DPTO EN EL PISO SELECCIONADO -->
+        <div id="lista-aires-piso" class="space-y-2 max-h-[50vh] overflow-y-auto pr-1"></div>
+      </div>
+    </section>
+
+    <!-- PESTAÑA 3: VISTA DE ENTREGAS -->
     <section id="sec-entregas" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         <h2 class="font-bold text-base text-gray-800 mb-1">Materiales A Entregar</h2>
@@ -151,7 +188,7 @@
       </div>
     </section>
 
-    <!-- PESTAÑA 3: PEDIDOS DE COMPRA -->
+    <!-- PESTAÑA 4: PEDIDOS DE COMPRA -->
     <section id="sec-pedidos" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         <h2 class="font-bold text-base text-gray-800 mb-1">Pedido a Proveedores</h2>
@@ -176,7 +213,7 @@
       </div>
     </section>
 
-    <!-- PESTAÑA 4: GESTIÓN DE MATERIALES Y PLANTILLAS -->
+    <!-- PESTAÑA 5: GESTIÓN DE MATERIALES Y PLANTILLAS -->
     <section id="sec-materiales" class="hidden space-y-4">
       
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
@@ -280,7 +317,6 @@
       { id: 'tm_mono', nombre: 'Llave TM Monofásica 20A', cant: 6 }
     ];
 
-    // MIGRACIÓN AUTOMÁTICA DE DATOS ANTERIORES
     function cargarConFallback(claveNueva, claveVieja, defecto) {
       const vNueva = localStorage.getItem(claveNueva);
       if (vNueva) return JSON.parse(vNueva);
@@ -303,18 +339,20 @@
       poblarSelectEntregaDptos();
       renderGestionMateriales();
       actualizarPorcentajeAvanceObra();
+      renderAiresPiso();
     }
 
     function switchTab(tab) {
-      ['plano', 'entregas', 'pedidos', 'materiales'].forEach((t, i) => {
+      ['plano', 'aires', 'entregas', 'pedidos', 'materiales'].forEach((t, i) => {
         document.getElementById(`sec-${t}`).classList.add('hidden');
         document.getElementById(`tab${i+1}`).classList.remove('tab-active');
       });
       
-      const map = { 'plano': 1, 'entregas': 2, 'pedidos': 3, 'materiales': 4 };
+      const map = { 'plano': 1, 'aires': 2, 'entregas': 3, 'pedidos': 4, 'materiales': 5 };
       document.getElementById(`sec-${tab}`).classList.remove('hidden');
       document.getElementById(`tab${map[tab]}`).classList.add('tab-active');
 
+      if (tab === 'aires') renderAiresPiso();
       if (tab === 'entregas') calcularVistaEntrega();
       if (tab === 'pedidos') calcularPedidoGlobal();
       if (tab === 'materiales') renderGestionMateriales();
@@ -365,6 +403,112 @@
       document.getElementById('stat-listos').innerText = dptosListos;
       document.getElementById('stat-parciales').innerText = dptosParciales;
       document.getElementById('stat-pendientes').innerText = dptosPendientes;
+    }
+
+    // --- PESTAÑA DEDICADA DE AIRES ACONDICIONADOS ---
+    function renderAiresPiso() {
+      const niv = document.getElementById('select-nivel-aires').value;
+      const cont = document.getElementById('lista-aires-piso');
+      cont.innerHTML = '';
+
+      let tot12Req = 0, tot12Ent = 0;
+      let tot18Req = 0, tot18Ent = 0;
+
+      // Calcular totales globales de aires
+      NIVELES.forEach(n => {
+        DPTOS_NUM.forEach(num => {
+          const cod = `${n}${num}`;
+          const datos = obtenerDatosDpto(cod, num);
+          const listaMat = obtenerListaBaseParaDpto(num);
+
+          const item12 = listaMat.find(m => m.id === 'ac12');
+          const item18 = listaMat.find(m => m.id === 'ac18');
+
+          if (item12 && item12.cant > 0) {
+            tot12Req += item12.cant;
+            tot12Ent += (datos.entregado['ac12'] || 0);
+          }
+          if (item18 && item18.cant > 0) {
+            tot18Req += item18.cant;
+            tot18Ent += (datos.entregado['ac18'] || 0);
+          }
+        });
+      });
+
+      document.getElementById('resumen-ac12').innerHTML = `
+        <p>Requeridos: <b>${tot12Req} un.</b></p>
+        <p>Instalados: <b class="text-green-700">${tot12Ent} un.</b></p>
+        <p>Faltan: <b class="text-red-600">${tot12Req - tot12Ent} un.</b></p>
+      `;
+
+      document.getElementById('resumen-ac18').innerHTML = `
+        <p>Requeridos: <b>${tot18Req} un.</b></p>
+        <p>Instalados: <b class="text-green-700">${tot18Ent} un.</b></p>
+        <p>Faltan: <b class="text-red-600">${tot18Req - tot18Ent} un.</b></p>
+      `;
+
+      // Renderizar por departamento en el nivel seleccionado
+      DPTOS_NUM.forEach(num => {
+        const cod = `${niv}${num}`;
+        const datos = obtenerDatosDpto(cod, num);
+        const listaMat = obtenerListaBaseParaDpto(num);
+
+        const ac12 = listaMat.find(m => m.id === 'ac12') || { cant: 0 };
+        const ac18 = listaMat.find(m => m.id === 'ac18') || { cant: 0 };
+
+        const ent12 = datos.entregado['ac12'] || 0;
+        const ent18 = datos.entregado['ac18'] || 0;
+
+        const listo12 = ent12 >= ac12.cant;
+        const listo18 = ent18 >= ac18.cant;
+
+        cont.innerHTML += `
+          <div class="bg-gray-50 p-2.5 rounded-lg border text-xs space-y-2">
+            <div class="flex justify-between items-center border-b pb-1">
+              <span class="font-bold text-gray-800 text-sm">Dpto ${cod}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded font-bold ${ESPECIALES.includes(num) ? 'bg-blue-100 text-blue-800' : 'bg-gray-200 text-gray-700'}">
+                ${ESPECIALES.includes(num) ? 'Especial' : 'Estándar'}
+              </span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-2 text-[11px]">
+              <div>
+                <span class="font-semibold block text-gray-700">12.000 BTU:</span>
+                <span class="${listo12 ? 'text-green-700 font-bold' : 'text-red-600 font-bold'}">
+                  Instalados ${ent12} de ${ac12.cant}
+                </span>
+              </div>
+              ${ac18.cant > 0 ? `
+              <div>
+                <span class="font-semibold block text-gray-700">18.000 BTU:</span>
+                <span class="${listo18 ? 'text-green-700 font-bold' : 'text-red-600 font-bold'}">
+                  Instalados ${ent18} de ${ac18.cant}
+                </span>
+              </div>` : '<div class="text-gray-400 font-italic">No requiere 18K</div>'}
+            </div>
+
+            <button onclick="marcarAiresDpto('${cod}', ${num})" class="w-full mt-1 bg-blue-700 text-white py-1 rounded font-bold text-[11px] hover:bg-blue-800">
+              ⚡ Marcar Aires de ${cod} como Instalados
+            </button>
+          </div>
+        `;
+      });
+    }
+
+    function marcarAiresDpto(codigo, num) {
+      const datos = obtenerDatosDpto(codigo, num);
+      const listaMat = obtenerListaBaseParaDpto(num);
+
+      const ac12 = listaMat.find(m => m.id === 'ac12');
+      const ac18 = listaMat.find(m => m.id === 'ac18');
+
+      if (ac12) datos.entregado['ac12'] = ac12.cant;
+      if (ac18) datos.entregado['ac18'] = ac18.cant;
+
+      guardarDatos();
+      renderAiresPiso();
+      renderPlano();
+      actualizarPorcentajeAvanceObra();
     }
 
     function renderPlano() {
@@ -814,7 +958,6 @@
       localStorage.setItem('obra_comunes_v7', JSON.stringify(comunes));
       localStorage.setItem('obra_deposito_v7', JSON.stringify(deposito));
 
-      // Duplicar en v6 por respaldo
       localStorage.setItem('obra_mat_std_v6', JSON.stringify(materialesStd));
       localStorage.setItem('obra_mat_esp_v6', JSON.stringify(materialesEsp));
       localStorage.setItem('obra_comunes_v6', JSON.stringify(comunes));
