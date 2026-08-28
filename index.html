@@ -69,7 +69,7 @@
           </div>
           <div class="flex items-center gap-2">
             <label class="text-xs font-semibold">Nivel:</label>
-            <select id="select-nivel" onchange="renderPlano(); cerrarDesplegable();" class="p-1.5 border rounded bg-gray-50 text-xs font-bold text-blue-900">
+            <select id="select-nivel" onchange="renderPlano();" class="p-1.5 border rounded bg-gray-50 text-xs font-bold text-blue-900">
               <option value="A">NIVEL 1 (A)</option>
               <option value="B">NIVEL 2 (B)</option>
               <option value="C">NIVEL 3 (C)</option>
@@ -109,46 +109,51 @@
 
         </div>
 
-        <!-- PANEL DESPLEGABLE -->
-        <div id="panel-desplegable-dpto" class="hidden mt-4 border-2 border-blue-500 rounded-xl p-3 bg-white space-y-3 shadow-lg">
-          <div class="flex justify-between items-center border-b pb-2">
-            <div>
-              <h3 id="desplegable-titulo" class="font-bold text-sm text-blue-900">Dpto</h3>
-              <p id="desplegable-subtitulo" class="text-[10px] text-gray-500"></p>
-            </div>
-            <button onclick="cerrarDesplegable()" class="text-gray-400 hover:text-gray-700 font-bold text-sm">Cerrar ✕</button>
-          </div>
-
-          <div class="space-y-2">
-            <button id="btn-prueba-fuga" onclick="togglePruebaFuga()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
-              <span>💧 Prueba de Fuga / Presión</span>
-              <span id="txt-estado-fuga" class="text-[10px] px-2 py-0.5 rounded font-bold">PENDIENTE</span>
-            </button>
-
-            <button id="btn-realizado-completo" onclick="toggleEstadoRealizadoCompleto()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
-              <span id="label-btn-realizado">✅ Marcar Todo Instalado (100%)</span>
-              <span id="txt-estado-completo" class="text-[10px] px-2 py-0.5 rounded font-bold">INCOMPLETO</span>
-            </button>
-          </div>
-
-          <!-- LISTA DE INSUMOS MUESTRA SOLO FALTANTES O PERMITE REGISTRARLOS -->
-          <div class="pt-2 border-t">
-            <div class="flex justify-between items-center mb-2">
-              <h4 class="text-xs font-bold text-gray-800 flex items-center gap-1">
-                <span>📋 Insumos del Departamento:</span>
-              </h4>
-              <button onclick="toggleMostrarTodosInsumos()" id="btn-toggle-ver-todos" class="text-[10px] font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
-                Ver todos los insumos
-              </button>
-            </div>
-
-            <div id="contenedor-solo-faltantes" class="space-y-2 max-h-[45vh] overflow-y-auto pr-1">
-            </div>
-          </div>
-        </div>
-
       </div>
     </section>
+
+    <!-- PANTALLA COMPLETA DEDICADA PARA CADA DEPARTAMENTO -->
+    <div id="pantalla-dpto" class="fixed inset-0 bg-white z-50 hidden overflow-y-auto p-4 space-y-4">
+      <div class="flex justify-between items-center border-b pb-3 bg-white sticky top-0 pt-2 z-10">
+        <div>
+          <button onclick="cerrarPantallaDpto()" class="text-xs font-bold text-blue-700 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 mb-1">
+            ← Volver al Plano
+          </button>
+          <h2 id="pantalla-titulo" class="font-extrabold text-xl text-blue-900">Dpto</h2>
+          <p id="pantalla-subtitulo" class="text-xs text-gray-500"></p>
+        </div>
+        <button onclick="cerrarPantallaDpto()" class="text-gray-400 hover:text-gray-700 font-extrabold text-2xl px-2">✕</button>
+      </div>
+
+      <div class="space-y-2 bg-gray-50 p-3 rounded-xl border border-gray-200">
+        <span class="text-xs font-bold text-gray-700 block mb-1">Estado General del Departamento:</span>
+        <button id="btn-prueba-fuga" onclick="togglePruebaFuga()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
+          <span>💧 Prueba de Fuga / Presión</span>
+          <span id="txt-estado-fuga" class="text-[10px] px-2 py-0.5 rounded font-bold">PENDIENTE</span>
+        </button>
+
+        <button id="btn-realizado-completo" onclick="marcarDepartamento100Ok()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-green-600 text-white border-green-700 shadow">
+          <span>✅ Marcar Departamento 100% Completo</span>
+          <span class="text-[10px] px-2 py-0.5 rounded font-bold bg-green-800 text-white">100% OK</span>
+        </button>
+      </div>
+
+      <div class="space-y-2 pt-2">
+        <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl">
+          <h3 class="font-bold text-sm text-amber-900 leading-tight">¿Qué le falta a este departamento?</h3>
+          <p class="text-[11px] text-amber-800 mt-0.5">Por defecto todo está en 0 (Completo). Ingresá solo la cantidad de unidades que faltan instalar.</p>
+        </div>
+
+        <div id="contenedor-reporte-faltantes" class="space-y-2 pt-1">
+        </div>
+      </div>
+
+      <div class="pt-4 border-t sticky bottom-0 bg-white pb-4">
+        <button onclick="guardarYVolver()" class="w-full bg-blue-700 text-white py-3 rounded-xl font-bold text-sm shadow-lg hover:bg-blue-800">
+          Guardar Cambios y Volver al Plano
+        </button>
+      </div>
+    </div>
 
     <!-- PESTAÑA 2: VISTA DE ENTREGAS -->
     <section id="sec-entregas" class="hidden space-y-4">
@@ -302,14 +307,13 @@
       return defecto;
     }
 
-    let materialesStd = cargarConFallback('obra_mat_std_v10', 'obra_mat_std_v9', JSON.parse(JSON.stringify(plantillaBaseInicialStd)));
-    let materialesEsp = cargarConFallback('obra_mat_esp_v10', 'obra_mat_esp_v9', JSON.parse(JSON.stringify(plantillaBaseInicialEsp)));
-    let dptosDatos = cargarConFallback('obra_dptos_datos_v10', 'obra_dptos_datos_v9', {});
-    let deposito = cargarConFallback('obra_deposito_v10', 'obra_deposito_v9', {});
+    let materialesStd = cargarConFallback('obra_mat_std_v11', 'obra_mat_std_v10', JSON.parse(JSON.stringify(plantillaBaseInicialStd)));
+    let materialesEsp = cargarConFallback('obra_mat_esp_v11', 'obra_mat_esp_v10', JSON.parse(JSON.stringify(plantillaBaseInicialEsp)));
+    let dptosDatos = cargarConFallback('obra_dptos_datos_v11', 'obra_dptos_datos_v10', {});
+    let deposito = cargarConFallback('obra_deposito_v11', 'obra_deposito_v10', {});
 
     let dptoSeleccionadoCod = null;
     let numDptoSeleccionado = null;
-    let mostrarTodosInsumos = false;
 
     function init() {
       renderPlano();
@@ -353,36 +357,29 @@
       return listaMod;
     }
 
-    function obtenerDatosDpto(codigo, num) {
+    function obtenerDatosDpto(codigo) {
       if (!dptosDatos[codigo]) {
         dptosDatos[codigo] = {
-          presion: false,
-          completoExplicit: false,
-          entregado: {}
+          presion: true,
+          faltantes: {}
         };
       }
       return dptosDatos[codigo];
     }
 
     function calcularEstado(codigo, num, datos) {
-      if (datos.completoExplicit && datos.presion) return 'OK';
-
       const listaMat = obtenerListaBaseParaDpto(num);
-      let entCount = 0;
-      let totalReq = 0;
+      let tieneFaltantesInsumos = false;
 
       listaMat.forEach(m => {
         if (m && m.cant > 0) {
-          const req = m.cant;
-          const ent = (datos.entregado && datos.entregado[m.id] !== undefined) ? datos.entregado[m.id] : (datos.completoExplicit ? req : 0);
-          entCount += Math.min(ent, req);
-          totalReq += req;
+          const falt = (datos.faltantes && datos.faltantes[m.id]) ? datos.faltantes[m.id] : 0;
+          if (falt > 0) tieneFaltantesInsumos = true;
         }
       });
 
-      if (entCount >= totalReq && datos.presion) return 'OK';
-      if (entCount > 0 || datos.presion) return 'PARCIAL';
-      return 'PENDIENTE';
+      if (!tieneFaltantesInsumos && datos.presion) return 'OK';
+      return 'PARCIAL';
     }
 
     function actualizarPorcentajeAvanceObra() {
@@ -391,12 +388,11 @@
 
       let dptosListos = 0;
       let dptosParciales = 0;
-      let dptosPendientes = 0;
 
       NIVELES.forEach(niv => {
         DPTOS_NUM.forEach(num => {
           const cod = `${niv}${num}`;
-          const datos = obtenerDatosDpto(cod, num);
+          const datos = obtenerDatosDpto(cod);
           const listaMat = obtenerListaBaseParaDpto(num);
 
           let dptoReq = 0;
@@ -405,9 +401,11 @@
           listaMat.forEach(m => {
             if (m && m.cant > 0) {
               const req = m.cant;
-              const ent = (datos.entregado && datos.entregado[m.id] !== undefined) ? datos.entregado[m.id] : (datos.completoExplicit ? req : 0);
+              const falt = (datos.faltantes && datos.faltantes[m.id]) ? datos.faltantes[m.id] : 0;
+              const instalado = Math.max(0, req - falt);
+              
               dptoReq += req;
-              dptoCompletado += Math.min(ent, req);
+              dptoCompletado += instalado;
             }
           });
 
@@ -419,8 +417,7 @@
 
           const est = calcularEstado(cod, num, datos);
           if (est === 'OK') dptosListos++;
-          else if (est === 'PARCIAL') dptosParciales++;
-          else dptosPendientes++;
+          else dptosParciales++;
         });
       });
 
@@ -431,13 +428,11 @@
 
       document.getElementById('stat-listos').innerText = dptosListos;
       document.getElementById('stat-parciales').innerText = dptosParciales;
-      document.getElementById('stat-pendientes').innerText = dptosPendientes;
+      document.getElementById('stat-pendientes').innerText = 0;
     }
 
     function obtenerResumenFaltantesTexto(codigo, num, datos) {
       try {
-        if (datos.completoExplicit && datos.presion) return "";
-
         const listaMat = obtenerListaBaseParaDpto(num);
         let faltantesArr = [];
 
@@ -447,12 +442,10 @@
 
         listaMat.forEach(m => {
           if (m && m.cant > 0) {
-            const req = m.cant;
-            const ent = (datos.entregado && datos.entregado[m.id] !== undefined) ? datos.entregado[m.id] : (datos.completoExplicit ? req : 0);
-            const diff = req - ent;
-            if (diff > 0) {
+            const falt = (datos.faltantes && datos.faltantes[m.id]) ? datos.faltantes[m.id] : 0;
+            if (falt > 0) {
               let nomCorto = m.nombre ? m.nombre.replace('Redondo sobreponer cálido ', 'Sob. ').replace('Redondo embutir cálido ', 'Emb. ').replace('Aire Acondicionado ', 'Aire ').replace('Placa de ', 'Placa ') : 'Item';
-              faltantesArr.push(`${diff} ${nomCorto}`);
+              faltantesArr.push(`${falt} ${nomCorto}`);
             }
           }
         });
@@ -486,17 +479,14 @@
     }
 
     function generarBotonPlano(codigo, num) {
-      const datos = obtenerDatosDpto(codigo, num);
+      const datos = obtenerDatosDpto(codigo);
       const est = calcularEstado(codigo, num, datos);
 
-      let style = 'bg-white border-gray-300 text-gray-800';
-      let tagTexto = '[PENDIENTE]';
+      let style = 'bg-green-500 border-green-700 text-white font-bold';
+      let tagTexto = '✔ [COMPLETO]';
       let detalleFaltanteHtml = '';
 
-      if (est === 'OK') {
-        style = 'bg-green-500 border-green-700 text-white font-bold';
-        tagTexto = '✔ [COMPLETO]';
-      } else if (est === 'PARCIAL') {
+      if (est === 'PARCIAL') {
         style = 'bg-yellow-300 border-yellow-600 text-yellow-950 font-bold';
         tagTexto = '⚠ [INCOMPLETO]';
         const txtFalt = obtenerResumenFaltantesTexto(codigo, num, datos);
@@ -506,7 +496,7 @@
       }
 
       return `
-        <button onclick="abrirDesplegableDpto('${codigo}', ${num})" 
+        <button onclick="abrirPantallaDpto('${codigo}', ${num})" 
           class="p-2 rounded-lg border-2 text-xs flex flex-col items-center justify-center transition shadow-sm w-full ${style}">
           <span class="text-sm font-extrabold">${codigo}</span>
           <span class="text-[9px] uppercase tracking-wider font-black opacity-90">${tagTexto}</span>
@@ -516,55 +506,36 @@
       `;
     }
 
-    function abrirDesplegableDpto(codigo, num) {
+    function abrirPantallaDpto(codigo, num) {
       dptoSeleccionadoCod = codigo;
       numDptoSeleccionado = num;
-      mostrarTodosInsumos = false;
-      const datos = obtenerDatosDpto(codigo, num);
+      const datos = obtenerDatosDpto(codigo);
 
       let desc = 'Estándar (2 Aires 12K)';
       if (num === 1 || num === 8) desc = 'Especial (2 Aires 12K + 1 Aire 18K)';
       else if (num === 9 || num === 16) desc = 'Especial (3 Aires 12K)';
 
-      document.getElementById('desplegable-titulo').innerText = `Dpto ${codigo}`;
-      document.getElementById('desplegable-subtitulo').innerText = desc;
+      document.getElementById('pantalla-titulo').innerText = `Departamento ${codigo}`;
+      document.getElementById('pantalla-subtitulo').innerText = desc;
 
-      actualizarUIBotonesPrincipales(datos, num);
-      renderInsumosDpto(codigo, num, datos);
+      actualizarBotonFugaUI(datos);
+      renderInsumosPantalla(codigo, num, datos);
 
-      document.getElementById('panel-desplegable-dpto').classList.remove('hidden');
+      document.getElementById('pantalla-dpto').classList.remove('hidden');
     }
 
-    function actualizarUIBotonesPrincipales(datos, num) {
+    function actualizarBotonFugaUI(datos) {
       const btnFuga = document.getElementById('btn-prueba-fuga');
       const txtFuga = document.getElementById('txt-estado-fuga');
 
       if (datos.presion) {
         btnFuga.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-blue-600 text-white border-blue-700 shadow";
         txtFuga.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-blue-800 text-white";
-        txtFuga.innerText = "✔ HECHO";
+        txtFuga.innerText = "✔ REALIZADA";
       } else {
-        btnFuga.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-gray-50 text-gray-700 border-gray-300";
-        txtFuga.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-gray-200 text-gray-600";
+        btnFuga.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-red-100 text-red-900 border-red-300";
+        txtFuga.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-red-700 text-white";
         txtFuga.innerText = "✖ PENDIENTE";
-      }
-
-      const btnComp = document.getElementById('btn-realizado-completo');
-      const txtComp = document.getElementById('txt-estado-completo');
-      const est = calcularEstado(dptoSeleccionadoCod, num, datos);
-
-      if (est === 'OK') {
-        btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-green-600 text-white border-green-700 shadow";
-        txtComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-green-800 text-white";
-        txtComp.innerText = "✔ REALIZADO 100%";
-      } else if (est === 'PARCIAL') {
-        btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-yellow-100 text-yellow-900 border-yellow-400";
-        txtComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-yellow-300 text-yellow-900";
-        txtComp.innerText = "⚠ INCOMPLETO / CON FALTANTES";
-      } else {
-        btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-gray-50 text-gray-700 border-gray-300";
-        txtComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-gray-200 text-gray-600";
-        txtComp.innerText = "✖ SIN INICIAR";
       }
     }
 
@@ -573,119 +544,79 @@
       const datos = dptosDatos[dptoSeleccionadoCod];
       datos.presion = !datos.presion;
       guardarDatos();
-      actualizarUIBotonesPrincipales(datos, numDptoSeleccionado);
-      renderInsumosDpto(dptoSeleccionadoCod, numDptoSeleccionado, datos);
+      actualizarBotonFugaUI(datos);
       renderPlano();
       actualizarPorcentajeAvanceObra();
     }
 
-    function toggleEstadoRealizadoCompleto() {
+    function marcarDepartamento100Ok() {
       if (!dptoSeleccionadoCod) return;
       const datos = dptosDatos[dptoSeleccionadoCod];
-      const num = numDptoSeleccionado;
-      const estActual = calcularEstado(dptoSeleccionadoCod, num, datos);
-
-      if (estActual === 'OK') {
-        datos.completoExplicit = false;
-        datos.entregado = {};
-        datos.presion = false;
-      } else {
-        datos.completoExplicit = true;
-        datos.presion = true;
-        const listaMat = obtenerListaBaseParaDpto(num);
-        if (!datos.entregado) datos.entregado = {};
-        listaMat.forEach(m => {
-          if (m && m.cant > 0) {
-            datos.entregado[m.id] = m.cant;
-          }
-        });
-      }
-
+      datos.faltantes = {};
+      datos.presion = true;
       guardarDatos();
-      actualizarUIBotonesPrincipales(datos, num);
-      renderInsumosDpto(dptoSeleccionadoCod, num, datos);
+      actualizarBotonFugaUI(datos);
+      renderInsumosPantalla(dptoSeleccionadoCod, numDptoSeleccionado, datos);
       renderPlano();
       actualizarPorcentajeAvanceObra();
     }
 
-    function toggleMostrarTodosInsumos() {
-      mostrarTodosInsumos = !mostrarTodosInsumos;
-      document.getElementById('btn-toggle-ver-todos').innerText = mostrarTodosInsumos ? 'Ocultar insumos completos' : 'Ver todos los insumos';
-      renderInsumosDpto(dptoSeleccionadoCod, numDptoSeleccionado, dptosDatos[dptoSeleccionadoCod]);
-    }
-
-    function renderInsumosDpto(codigo, num, datos) {
+    function renderInsumosPantalla(codigo, num, datos) {
       const listaMat = obtenerListaBaseParaDpto(num);
-      const cont = document.getElementById('contenedor-solo-faltantes');
+      const cont = document.getElementById('contenedor-reporte-faltantes');
       cont.innerHTML = '';
-
-      let hayFaltantes = false;
 
       listaMat.forEach(m => {
         if (m && m.cant > 0) {
           const req = m.cant;
-          const ent = (datos.entregado && datos.entregado[m.id] !== undefined) ? datos.entregado[m.id] : (datos.completoExplicit ? req : 0);
-          const faltante = Math.max(0, req - ent);
+          const falt = (datos.faltantes && datos.faltantes[m.id] !== undefined) ? datos.faltantes[m.id] : 0;
 
-          if (faltante > 0 || mostrarTodosInsumos) {
-            if (faltante > 0) hayFaltantes = true;
-
-            cont.innerHTML += `
-              <div class="${faltante > 0 ? 'bg-red-50 border-red-200' : 'bg-green-50 border-green-200'} p-2 rounded-lg border flex justify-between items-center text-xs">
-                <div class="flex-1 pr-2">
-                  <span class="font-bold text-gray-800 block">${m.nombre}</span>
-                  <span class="text-[10px] ${faltante > 0 ? 'text-red-700 font-extrabold' : 'text-green-700 font-bold'}">
-                    ${faltante > 0 ? 'Faltan instalar: ' + faltante + ' de ' + req : '✔ COMPLETO (' + req + ' un.)'}
-                  </span>
-                </div>
-                <div class="flex items-center gap-1">
-                  <span class="text-[10px] text-gray-500 font-semibold">Instalado:</span>
-                  <input type="number" value="${ent}" min="0" max="${req}" onchange="actualizarCantidadItem('${codigo}', '${m.id}', this.value)" class="w-14 p-1 border rounded text-center font-bold text-xs bg-white">
-                </div>
+          cont.innerHTML += `
+            <div class="${falt > 0 ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200'} p-3 rounded-xl border flex justify-between items-center text-xs shadow-sm">
+              <div class="flex-1 pr-2">
+                <span class="font-bold text-gray-800 block text-xs mb-0.5">${m.nombre}</span>
+                <span class="text-[10px] text-gray-500 font-semibold">Total del Dpto: ${req} un.</span>
               </div>
-            `;
-          }
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-bold ${falt > 0 ? 'text-red-700' : 'text-gray-600'}">Faltan:</span>
+                <input type="number" value="${falt}" min="0" max="${req}" onfocus="this.select()" onchange="actualizarFaltanteInsumo('${codigo}', '${m.id}', this.value)" class="w-16 p-1.5 border-2 rounded-lg text-center font-black text-sm ${falt > 0 ? 'bg-red-100 border-red-400 text-red-900' : 'bg-gray-50 border-gray-300 text-gray-800'}">
+              </div>
+            </div>
+          `;
         }
       });
-
-      if (!hayFaltantes && !mostrarTodosInsumos && datos.presion) {
-        cont.innerHTML = `
-          <div class="p-3 bg-green-50 border border-green-200 rounded-lg text-center text-xs font-bold text-green-800">
-            🎉 ¡Este departamento tiene todos sus materiales instalados y prueba realizada!
-          </div>
-        `;
-      } else if (!hayFaltantes && !mostrarTodosInsumos && !datos.presion) {
-        cont.innerHTML = `
-          <div class="p-2.5 bg-yellow-50 border border-yellow-200 rounded-lg text-xs font-bold text-yellow-900 text-center">
-            ⚠️ Materiales al 100%. Solo falta realizar la Prueba de Fuga/Presión.
-          </div>
-        `;
-      }
     }
 
-    function actualizarCantidadItem(codigo, matId, val) {
-      if (!dptosDatos[codigo].entregado) dptosDatos[codigo].entregado = {};
+    function actualizarFaltanteInsumo(codigo, matId, val) {
+      if (!dptosDatos[codigo].faltantes) dptosDatos[codigo].faltantes = {};
       const numVal = parseInt(val) || 0;
-      dptosDatos[codigo].entregado[matId] = numVal;
-      dptosDatos[codigo].completoExplicit = false;
+      
+      if (numVal <= 0) {
+        delete dptosDatos[codigo].faltantes[matId];
+      } else {
+        dptosDatos[codigo].faltantes[matId] = numVal;
+      }
 
       guardarDatos();
-      actualizarUIBotonesPrincipales(dptosDatos[codigo], numDptoSeleccionado);
-      renderInsumosDpto(codigo, numDptoSeleccionado, dptosDatos[codigo]);
+      renderInsumosPantalla(codigo, numDptoSeleccionado, dptosDatos[codigo]);
       renderPlano();
       actualizarPorcentajeAvanceObra();
     }
 
-    function cerrarDesplegable() {
-      document.getElementById('panel-desplegable-dpto').classList.add('hidden');
+    function cerrarPantallaDpto() {
+      document.getElementById('pantalla-dpto').classList.add('hidden');
       dptoSeleccionadoCod = null;
       numDptoSeleccionado = null;
     }
 
+    function guardarYVolver() {
+      cerrarPantallaDpto();
+    }
+
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_dptos_datos_v11', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_dptos_datos_v10', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_dptos_datos_v9', JSON.stringify(dptosDatos));
       } catch (e) {
         console.error(e);
       }
@@ -711,14 +642,12 @@
 
       dptosAProcesar.forEach(num => {
         const cod = `${niv}${num}`;
-        const datos = obtenerDatosDpto(cod, num);
+        const datos = obtenerDatosDpto(cod);
         const listaMat = obtenerListaBaseParaDpto(num);
 
         listaMat.forEach(m => {
           if (m && m.cant > 0) {
-            const req = m.cant;
-            const ent = (datos.entregado && datos.entregado[m.id] !== undefined) ? datos.entregado[m.id] : (datos.completoExplicit ? req : 0);
-            const falt = Math.max(0, req - ent);
+            const falt = (datos.faltantes && datos.faltantes[m.id]) ? datos.faltantes[m.id] : 0;
             if (falt > 0) {
               acumulado[m.nombre] = (acumulado[m.nombre] || 0) + falt;
             }
@@ -763,14 +692,12 @@
         if (filtro === 'obra' || filtro === niv) {
           DPTOS_NUM.forEach(num => {
             const cod = `${niv}${num}`;
-            const datos = obtenerDatosDpto(cod, num);
+            const datos = obtenerDatosDpto(cod);
             const listaMat = obtenerListaBaseParaDpto(num);
 
             listaMat.forEach(m => {
               if (m && m.cant > 0) {
-                const req = m.cant;
-                const ent = (datos.entregado && datos.entregado[m.id] !== undefined) ? datos.entregado[m.id] : (datos.completoExplicit ? req : 0);
-                const falt = Math.max(0, req - ent);
+                const falt = (datos.faltantes && datos.faltantes[m.id]) ? datos.faltantes[m.id] : 0;
                 if (falt > 0) {
                   if (!acumuladoPend[m.id]) acumuladoPend[m.id] = { nombre: m.nombre, cant: 0 };
                   acumuladoPend[m.id].cant += falt;
@@ -899,13 +826,13 @@
         if (input) deposito[m.id] = parseInt(input.value) || 0;
       });
 
+      localStorage.setItem('obra_mat_std_v11', JSON.stringify(materialesStd));
+      localStorage.setItem('obra_mat_esp_v11', JSON.stringify(materialesEsp));
+      localStorage.setItem('obra_deposito_v11', JSON.stringify(deposito));
+
       localStorage.setItem('obra_mat_std_v10', JSON.stringify(materialesStd));
       localStorage.setItem('obra_mat_esp_v10', JSON.stringify(materialesEsp));
       localStorage.setItem('obra_deposito_v10', JSON.stringify(deposito));
-
-      localStorage.setItem('obra_mat_std_v9', JSON.stringify(materialesStd));
-      localStorage.setItem('obra_mat_esp_v9', JSON.stringify(materialesEsp));
-      localStorage.setItem('obra_deposito_v9', JSON.stringify(deposito));
 
       actualizarPorcentajeAvanceObra();
       alert('¡Todo guardado correctamente!');
