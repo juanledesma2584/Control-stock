@@ -29,7 +29,7 @@
 
   <main class="p-3 max-w-4xl mx-auto space-y-4">
 
-    <!-- PESTAÑA 1: PLANO Y PANEL REVISADO -->
+    <!-- PESTAÑA 1: PLANO Y PANEL RÁPIDO DE 2 BOTONES -->
     <section id="sec-plano" class="space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         <div class="flex justify-between items-center mb-3">
@@ -59,32 +59,41 @@
           </div>
         </div>
 
-        <!-- PANEL DE ESTADO Y REALIZADOS -->
-        <div id="panel-desplegable-dpto" class="hidden mt-4 border-2 border-blue-500 rounded-xl p-3 bg-blue-50/30 space-y-3">
-          <div class="flex justify-between items-center border-b border-blue-200 pb-2">
+        <!-- PANEL DE ACCIÓN RÁPIDA -->
+        <div id="panel-desplegable-dpto" class="hidden mt-4 border-2 border-blue-500 rounded-xl p-3 bg-white space-y-3 shadow-lg">
+          <div class="flex justify-between items-center border-b pb-2">
             <div>
               <h3 id="desplegable-titulo" class="font-bold text-sm text-blue-900">Dpto</h3>
-              <p class="text-[10px] text-gray-500">Carga de avance e instalación</p>
+              <p class="text-[10px] text-gray-500">Marcar avance o registrar faltantes</p>
             </div>
             <button onclick="cerrarDesplegable()" class="text-gray-400 hover:text-gray-700 font-bold text-sm">Cerrar ✕</button>
           </div>
 
-          <!-- PRUEBAS Y AIRES -->
-          <div class="grid grid-cols-2 gap-2 text-xs bg-white p-2 rounded-lg border">
-            <div class="flex items-center gap-2">
-              <input type="checkbox" id="disp-presion" onchange="guardarCambiosDesplegable()" class="accent-blue-600 w-4 h-4">
-              <label class="font-semibold text-gray-700 text-[11px]">Prueba Presión Realizada</label>
-            </div>
-            <div>
-              <label class="block text-[10px] text-gray-500 font-semibold">Aires 12.000 BTU (cant):</label>
-              <input type="number" id="disp-aires" onchange="guardarCambiosDesplegable()" class="w-full p-1 border rounded text-xs font-bold mt-0.5">
-            </div>
+          <!-- BOTONES PRINCIPALES DE ACCIÓN RÁPIDA -->
+          <div class="space-y-2">
+            <!-- Botón 1: Prueba de Fuga/Presión -->
+            <button id="btn-prueba-fuga" onclick="togglePruebaFuga()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
+              <span>💧 Prueba de Fuga / Presión</span>
+              <span id="txt-estado-fuga" class="text-[10px] px-2 py-0.5 rounded font-bold">Pendiente</span>
+            </button>
+
+            <!-- Botón 2: Marcado de Realizado Completo -->
+            <button id="btn-realizado-completo" onclick="marcarTodoRealizado()" class="w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between transition">
+              <span>✅ Instalación Realizada / Completa</span>
+              <span id="txt-estado-completo" class="text-[10px] px-2 py-0.5 rounded font-bold">Incompleto</span>
+            </button>
           </div>
 
-          <!-- LISTADO DE LO REALIZADO Y PENDIENTES -->
-          <div>
-            <h4 class="font-bold text-xs text-gray-700 mb-1">Instalación y Entregas por Artefacto:</h4>
-            <div id="disp-lista-materiales" class="space-y-1.5 max-h-[45vh] overflow-y-auto pr-1"></div>
+          <!-- BOTÓN PARA DESPLEGAR DETALLE DE FALTANTES (SOLO SI HACE FALTA) -->
+          <div class="pt-2 border-t">
+            <button onclick="toggleListaFaltantes()" class="w-full text-left text-xs font-bold text-amber-700 hover:text-amber-900 flex justify-between items-center bg-amber-50 p-2 rounded border border-amber-200">
+              <span>⚠️ Incompleto / Cargar Faltantes Específicos</span>
+              <span id="icono-desplegar">▼</span>
+            </button>
+
+            <div id="contenedor-faltantes" class="hidden mt-2 space-y-1.5 max-h-[35vh] overflow-y-auto pr-1 pt-1">
+              <!-- Lista desplegable por artefacto -->
+            </div>
           </div>
         </div>
 
@@ -190,7 +199,6 @@
         <h2 class="font-bold text-base text-gray-800 mb-1">4. Stock Físico en Depósito</h2>
         <div id="lista-deposito-gestion" class="space-y-1.5 max-h-[30vh] overflow-y-auto pr-1"></div>
         
-        <!-- FORMULARIO PARA AGREGAR NUEVO ARTEFACTO AL DEPOSITADO -->
         <div class="mt-3 pt-2 border-t space-y-2">
           <span class="text-xs font-bold text-gray-700 block">¿Olvidaste un artefacto? Agregalo al depósito acá:</span>
           <div class="flex gap-2">
@@ -231,13 +239,14 @@
       { id: 'tm_mono', nombre: 'Llave TM Monofásica 20A', cant: 6 }
     ];
 
-    let materialesStd = JSON.parse(localStorage.getItem('obra_mat_std_v5')) || JSON.parse(JSON.stringify(plantillaBaseInicial));
-    let materialesEsp = JSON.parse(localStorage.getItem('obra_mat_esp_v5')) || JSON.parse(JSON.stringify(plantillaBaseInicial));
-    let dptosDatos = JSON.parse(localStorage.getItem('obra_dptos_datos_v5')) || {};
-    let deposito = JSON.parse(localStorage.getItem('obra_deposito_v5')) || {};
-    let comunes = JSON.parse(localStorage.getItem('obra_comunes_v5')) || { azotea: [], estac: [] };
+    let materialesStd = JSON.parse(localStorage.getItem('obra_mat_std_v6')) || JSON.parse(JSON.stringify(plantillaBaseInicial));
+    let materialesEsp = JSON.parse(localStorage.getItem('obra_mat_esp_v6')) || JSON.parse(JSON.stringify(plantillaBaseInicial));
+    let dptosDatos = JSON.parse(localStorage.getItem('obra_dptos_datos_v6')) || {};
+    let deposito = JSON.parse(localStorage.getItem('obra_deposito_v6')) || {};
+    let comunes = JSON.parse(localStorage.getItem('obra_comunes_v6')) || { azotea: [], estac: [] };
 
     let dptoSeleccionadoCod = null;
+    let numDptoSeleccionado = null;
 
     function init() {
       renderPlano();
@@ -292,7 +301,6 @@
       if (!dptosDatos[codigo]) {
         dptosDatos[codigo] = {
           presion: false,
-          aires: ESPECIALES.includes(num) ? 3 : 2,
           entregado: {}
         };
       }
@@ -322,14 +330,98 @@
 
     function abrirDesplegableDpto(codigo, num) {
       dptoSeleccionadoCod = codigo;
+      numDptoSeleccionado = num;
       const datos = obtenerDatosDpto(codigo, num);
-      const listaMat = obtenerListaBaseParaDpto(num);
 
       document.getElementById('desplegable-titulo').innerText = `Dpto ${codigo} ${ESPECIALES.includes(num) ? '(Especial)' : '(Estándar)'}`;
-      document.getElementById('disp-presion').checked = datos.presion;
-      document.getElementById('disp-aires').value = datos.aires;
+      
+      // Ocultar sección de faltantes por defecto
+      document.getElementById('contenedor-faltantes').classList.add('hidden');
+      document.getElementById('icono-desplegar').innerText = '▼';
 
-      const cont = document.getElementById('disp-lista-materiales');
+      actualizarUIBotonesPrincipales(datos, num);
+      renderListaFaltantes(codigo, num, datos);
+
+      document.getElementById('panel-desplegable-dpto').classList.remove('hidden');
+    }
+
+    function actualizarUIBotonesPrincipales(datos, num) {
+      // Estado Botón Fuga
+      const btnFuga = document.getElementById('btn-prueba-fuga');
+      const txtFuga = document.getElementById('txt-estado-fuga');
+
+      if (datos.presion) {
+        btnFuga.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-blue-600 text-white border-blue-700 shadow";
+        txtFuga.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-blue-800 text-white";
+        txtFuga.innerText = "HECHO";
+      } else {
+        btnFuga.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-gray-50 text-gray-700 border-gray-300";
+        txtFuga.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-gray-200 text-gray-600";
+        txtFuga.innerText = "PENDIENTE";
+      }
+
+      // Estado Botón Instalación Completa
+      const btnComp = document.getElementById('btn-realizado-completo');
+      const txtComp = document.getElementById('txt-estado-completo');
+      const est = calcularEstado(dptoSeleccionadoCod, num, datos);
+
+      if (est === 'OK') {
+        btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-green-600 text-white border-green-700 shadow";
+        txtComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-green-800 text-white";
+        txtComp.innerText = "REALIZADO 100%";
+      } else if (est === 'PARCIAL') {
+        btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-yellow-100 text-yellow-900 border-yellow-400";
+        txtComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-yellow-300 text-yellow-900";
+        txtComp.innerText = "PARCIAL / CON FALTANTES";
+      } else {
+        btnComp.className = "w-full py-2.5 px-3 rounded-lg border font-bold text-xs flex items-center justify-between bg-gray-50 text-gray-700 border-gray-300";
+        txtComp.className = "text-[10px] px-2 py-0.5 rounded font-bold bg-gray-200 text-gray-600";
+        txtComp.innerText = "SIN INICIAR";
+      }
+    }
+
+    function togglePruebaFuga() {
+      if (!dptoSeleccionadoCod) return;
+      const datos = dptosDatos[dptoSeleccionadoCod];
+      datos.presion = !datos.presion;
+      guardarDatos();
+      actualizarUIBotonesPrincipales(datos, numDptoSeleccionado);
+      renderPlano();
+    }
+
+    function marcarTodoRealizado() {
+      if (!dptoSeleccionadoCod) return;
+      const datos = dptosDatos[dptoSeleccionadoCod];
+      const listaMat = obtenerListaBaseParaDpto(numDptoSeleccionado);
+
+      // Marcar 100% de entrega en todos los ítems
+      listaMat.forEach(m => {
+        const req = (datos.reqPersonalizado && datos.reqPersonalizado[m.id] !== undefined) ? datos.reqPersonalizado[m.id] : m.cant;
+        datos.entregado[m.id] = req;
+      });
+
+      datos.presion = true; // Marca también realizada la prueba
+      guardarDatos();
+      actualizarUIBotonesPrincipales(datos, numDptoSeleccionado);
+      renderListaFaltantes(dptoSeleccionadoCod, numDptoSeleccionado, datos);
+      renderPlano();
+    }
+
+    function toggleListaFaltantes() {
+      const cont = document.getElementById('contenedor-faltantes');
+      const icono = document.getElementById('icono-desplegar');
+      if (cont.classList.contains('hidden')) {
+        cont.classList.remove('hidden');
+        icono.innerText = '▲';
+      } else {
+        cont.classList.add('hidden');
+        icono.innerText = '▼';
+      }
+    }
+
+    function renderListaFaltantes(codigo, num, datos) {
+      const listaMat = obtenerListaBaseParaDpto(num);
+      const cont = document.getElementById('contenedor-faltantes');
       cont.innerHTML = '';
 
       listaMat.forEach(m => {
@@ -338,48 +430,37 @@
         const faltante = Math.max(0, req - ent);
 
         cont.innerHTML += `
-          <div class="bg-white p-2 rounded border text-xs space-y-1">
-            <div class="flex justify-between items-center">
-              <span class="font-bold text-gray-800">${m.nombre}</span>
-              ${faltante > 0 
-                ? `<span class="bg-red-100 text-red-700 font-bold px-1.5 py-0.5 rounded text-[10px]">Faltan: ${faltante}</span>` 
-                : `<span class="bg-green-100 text-green-700 font-bold px-1.5 py-0.5 rounded text-[10px]">Completo</span>`
-              }
+          <div class="bg-gray-50 p-2 rounded border text-xs flex justify-between items-center">
+            <div class="flex-1">
+              <span class="font-bold text-gray-800 block">${m.nombre}</span>
+              <span class="text-[10px] ${faltante > 0 ? 'text-red-600 font-bold' : 'text-green-600'}">
+                ${faltante > 0 ? 'Faltan: ' + faltante : 'Completo'}
+              </span>
             </div>
-            <div class="flex justify-between items-center text-[11px] border-t pt-1">
-              <span class="text-gray-500">Realizado / Instalado:</span>
-              <input type="number" value="${ent}" min="0" onchange="actualizarEntregadoDpto('${codigo}', '${m.id}', this.value)" class="w-16 p-1 border rounded text-center font-bold text-xs bg-gray-50">
+            <div class="flex items-center gap-1">
+              <span class="text-[10px] text-gray-400">Instalado:</span>
+              <input type="number" value="${ent}" min="0" onchange="actualizarEntregadoDpto('${codigo}', '${m.id}', this.value)" class="w-14 p-1 border rounded text-center font-bold text-xs bg-white">
             </div>
           </div>
         `;
       });
-
-      document.getElementById('panel-desplegable-dpto').classList.remove('hidden');
     }
 
     function actualizarEntregadoDpto(codigo, matId, val) {
       dptosDatos[codigo].entregado[matId] = parseInt(val) || 0;
       guardarDatos();
-      renderPlano();
-    }
-
-    function guardarCambiosDesplegable() {
-      if (!dptoSeleccionadoCod) return;
-      const d = dptosDatos[dptoSeleccionadoCod];
-      d.presion = document.getElementById('disp-presion').checked;
-      d.aires = parseInt(document.getElementById('disp-aires').value) || 0;
-
-      guardarDatos();
+      actualizarUIBotonesPrincipales(dptosDatos[codigo], numDptoSeleccionado);
       renderPlano();
     }
 
     function cerrarDesplegable() {
       document.getElementById('panel-desplegable-dpto').classList.add('hidden');
       dptoSeleccionadoCod = null;
+      numDptoSeleccionado = null;
     }
 
     function guardarDatos() {
-      localStorage.setItem('obra_dptos_datos_v5', JSON.stringify(dptosDatos));
+      localStorage.setItem('obra_dptos_datos_v6', JSON.stringify(dptosDatos));
     }
 
     function poblarSelectEntregaDptos() {
@@ -497,7 +578,6 @@
     }
 
     function renderGestionMateriales() {
-      // 1. Estándar
       const contStd = document.getElementById('lista-plantilla-std');
       contStd.innerHTML = '';
       materialesStd.forEach((m, idx) => {
@@ -510,7 +590,6 @@
         `;
       });
 
-      // 2. Especial
       const contEsp = document.getElementById('lista-plantilla-esp');
       contEsp.innerHTML = '';
       materialesEsp.forEach((m, idx) => {
@@ -523,7 +602,6 @@
         `;
       });
 
-      // 3. Comunes
       ['azotea', 'estac'].forEach(tipo => {
         const cont = document.getElementById(`lista-comunes-${tipo}`);
         cont.innerHTML = '';
@@ -538,7 +616,6 @@
         });
       });
 
-      // 4. Depósito
       const contDep = document.getElementById('lista-deposito-gestion');
       contDep.innerHTML = '';
       
@@ -608,10 +685,10 @@
         if (input) deposito[m.id] = parseInt(input.value) || 0;
       });
 
-      localStorage.setItem('obra_mat_std_v5', JSON.stringify(materialesStd));
-      localStorage.setItem('obra_mat_esp_v5', JSON.stringify(materialesEsp));
-      localStorage.setItem('obra_comunes_v5', JSON.stringify(comunes));
-      localStorage.setItem('obra_deposito_v5', JSON.stringify(deposito));
+      localStorage.setItem('obra_mat_std_v6', JSON.stringify(materialesStd));
+      localStorage.setItem('obra_mat_esp_v6', JSON.stringify(materialesEsp));
+      localStorage.setItem('obra_comunes_v6', JSON.stringify(comunes));
+      localStorage.setItem('obra_deposito_v6', JSON.stringify(deposito));
 
       alert('¡Todo guardado correctamente!');
     }
