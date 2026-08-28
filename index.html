@@ -263,6 +263,7 @@
     const DPTOS_NUM = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
     const ESPECIALES = [1, 8, 9, 16];
 
+    // CORREGIDO: Pico timbre configurado exactamente en 1 unidad
     const plantillaBaseInicialStd = [
       { id: 'ac12', nombre: 'Aire Acondicionado 12.000 BTU', cant: 2 },
       { id: 'l1', nombre: 'Redondo sobreponer cálido 30W', cant: 1 },
@@ -276,7 +277,7 @@
       { id: 'pt', nombre: 'Pico toma de 24mm', cant: 15 },
       { id: 'pl', nombre: 'Pico llave de 24mm', cant: 8 },
       { id: 'ts', nombre: 'Toma shuko de 48mm', cant: 5 },
-      { id: 'tb', nombre: 'Pico timbre', cant: 16 },
+      { id: 'tb', nombre: 'Pico timbre', cant: 1 },
       { id: 'tm_tri', nombre: 'Llave TM Trifásica 25A', cant: 1 },
       { id: 'tm_mono', nombre: 'Llave TM Monofásica 20A', cant: 6 }
     ];
@@ -295,14 +296,14 @@
       { id: 'pt', nombre: 'Pico toma de 24mm', cant: 15 },
       { id: 'pl', nombre: 'Pico llave de 24mm', cant: 8 },
       { id: 'ts', nombre: 'Toma shuko de 48mm', cant: 5 },
-      { id: 'tb', nombre: 'Pico timbre', cant: 16 },
+      { id: 'tb', nombre: 'Pico timbre', cant: 1 },
       { id: 'tm_tri', nombre: 'Llave TM Trifásica 25A', cant: 1 },
       { id: 'tm_mono', nombre: 'Llave TM Monofásica 20A', cant: 6 }
     ];
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v13`, `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`, 
+        `${prefijo}_v14`, `${prefijo}_v13`, `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`, 
         `${prefijo}_v9`, `${prefijo}_v8`, `${prefijo}_v7`, `${prefijo}_v6`
       ];
       for (let c of claves) {
@@ -323,6 +324,26 @@
     let materialesEsp = buscarEnCualquierVersion('obra_mat_esp', JSON.parse(JSON.stringify(plantillaBaseInicialEsp)));
     let dptosDatos = buscarEnCualquierVersion('obra_dptos_datos', {});
     let deposito = buscarEnCualquierVersion('obra_deposito', {});
+
+    // AUTOCORRECCIÓN DE PLANTILLAS Y FALTANTES PREVIOS
+    function corregirValoresTimbre() {
+      // Corregir la plantilla guardada previamente en el navegador
+      let tbStd = materialesStd.find(m => m.id === 'tb');
+      if (tbStd) tbStd.cant = 1;
+
+      let tbEsp = materialesEsp.find(m => m.id === 'tb');
+      if (tbEsp) tbEsp.cant = 1;
+
+      // Corregir registros en dptos que tengan más de 1 pico timbre anotado como faltante
+      Object.keys(dptosDatos).forEach(cod => {
+        if (dptosDatos[cod] && dptosDatos[cod].faltantes && dptosDatos[cod].faltantes['tb'] > 1) {
+          dptosDatos[cod].faltantes['tb'] = 1;
+        }
+      });
+      guardarDatos();
+    }
+
+    corregirValoresTimbre();
 
     let dptoSeleccionadoCod = null;
     let numDptoSeleccionado = null;
@@ -379,7 +400,6 @@
       return dptosDatos[codigo];
     }
 
-    // LÓGICA REVISADA DE COLORES (ROJO / AMARILLO / VERDE)
     function calcularEstado(codigo, num, datos) {
       const listaMat = obtenerListaBaseParaDpto(num);
       let totalReq = 0;
@@ -393,13 +413,8 @@
         }
       });
 
-      // 1. VERDE: Prueba hecha Y Cero faltantes de materiales
-      if (!datos.presion === false && totalFalt === 0) return 'OK';
-
-      // 2. ROJO: Sin prueba Y Falta el 100% de materiales (o la gran mayoría)
+      if (datos.presion && totalFalt === 0) return 'OK';
       if (!datos.presion && (totalFalt >= totalReq)) return 'ROJO';
-
-      // 3. AMARILLO: Tiene faltantes específicos (Aires, Prueba o Eléctrica parcial)
       return 'AMARILLO';
     }
 
@@ -686,15 +701,15 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v14', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp_v14', JSON.stringify(materialesEsp));
+        localStorage.setItem('obra_dptos_datos_v14', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v14', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v13', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp_v13', JSON.stringify(materialesEsp));
         localStorage.setItem('obra_dptos_datos_v13', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v13', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v12', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp_v12', JSON.stringify(materialesEsp));
-        localStorage.setItem('obra_dptos_datos_v12', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v12', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
