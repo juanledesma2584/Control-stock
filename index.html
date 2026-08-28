@@ -16,16 +16,27 @@
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans pb-10">
 
-  <!-- Header -->
-  <header class="bg-blue-800 text-white p-3 shadow-md sticky top-0 z-20 flex justify-between items-center">
-    <div>
-      <h1 class="text-lg font-bold">Control de Obra</h1>
-      <p class="text-xs text-blue-200">100 Departamentos + Comunes</p>
+  <!-- Header con Porcentaje de Avance -->
+  <header class="bg-blue-800 text-white p-3 shadow-md sticky top-0 z-20 space-y-2">
+    <div class="flex justify-between items-center">
+      <div>
+        <h1 class="text-lg font-bold leading-tight">Control de Obra</h1>
+        <p class="text-xs text-blue-200">100 Departamentos + Comunes</p>
+      </div>
+      <div class="text-right">
+        <span id="porcentaje-header" class="text-xl font-extrabold text-amber-400">0%</span>
+        <span class="block text-[9px] uppercase tracking-wider text-blue-200 font-semibold">Avance General</span>
+      </div>
+    </div>
+    
+    <!-- Barra de progreso general -->
+    <div class="w-full bg-blue-950 rounded-full h-2.5 overflow-hidden p-0.5 border border-blue-700">
+      <div id="barra-progreso-header" class="bg-amber-400 h-1.5 rounded-full transition-all duration-500" style="width: 0%"></div>
     </div>
   </header>
 
   <!-- Navegación -->
-  <nav class="bg-white shadow flex justify-around border-b border-gray-200 text-xs font-medium sticky top-[52px] z-20">
+  <nav class="bg-white shadow flex justify-around border-b border-gray-200 text-xs font-medium sticky top-[66px] z-20">
     <button id="tab1" onclick="switchTab('plano')" class="py-3 px-1 tab-active flex-1 text-center">Plano / Dptos</button>
     <button id="tab2" onclick="switchTab('entregas')" class="py-3 px-1 flex-1 text-center">Vista Entregas</button>
     <button id="tab3" onclick="switchTab('pedidos')" class="py-3 px-1 flex-1 text-center">Pedidos / Faltantes</button>
@@ -34,8 +45,25 @@
 
   <main class="p-3 max-w-4xl mx-auto space-y-4">
 
-    <!-- PESTAÑA 1: PLANO Y PANEL RÁPIDO DE 2 BOTONES -->
+    <!-- PESTAÑA 1: PLANO Y TARJETA DE AVANCE -->
     <section id="sec-plano" class="space-y-4">
+      
+      <!-- TARJETA RESUMEN DE PROGRESO POR DEPARTAMENTOS -->
+      <div class="bg-white p-3 rounded-xl shadow-sm border border-gray-200 grid grid-cols-3 gap-2 text-center text-xs">
+        <div class="p-2 bg-green-50 rounded-lg border border-green-100">
+          <span id="stat-listos" class="block text-base font-black text-green-700">0</span>
+          <span class="text-[10px] text-green-800 font-semibold">Listos (100%)</span>
+        </div>
+        <div class="p-2 bg-yellow-50 rounded-lg border border-yellow-100">
+          <span id="stat-parciales" class="block text-base font-black text-yellow-700">0</span>
+          <span class="text-[10px] text-yellow-800 font-semibold">En Proceso</span>
+        </div>
+        <div class="p-2 bg-gray-50 rounded-lg border border-gray-200">
+          <span id="stat-pendientes" class="block text-base font-black text-gray-600">0</span>
+          <span class="text-[10px] text-gray-500 font-semibold">Sin Iniciar</span>
+        </div>
+      </div>
+
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
         <div class="flex justify-between items-center mb-3">
           <h2 class="font-bold text-base text-gray-800">Planta General</h2>
@@ -255,6 +283,7 @@
       renderPlano();
       poblarSelectEntregaDptos();
       renderGestionMateriales();
+      actualizarPorcentajeAvanceObra();
     }
 
     function switchTab(tab) {
@@ -270,6 +299,56 @@
       if (tab === 'entregas') calcularVistaEntrega();
       if (tab === 'pedidos') calcularPedidoGlobal();
       if (tab === 'materiales') renderGestionMateriales();
+    }
+
+    function actualizarPorcentajeAvanceObra() {
+      let totalPuntosRequeridos = 0;
+      let totalPuntosCompletados = 0;
+
+      let dptosListos = 0;
+      let dptosParciales = 0;
+      let dptosPendientes = 0;
+
+      NIVELES.forEach(niv => {
+        DPTOS_NUM.forEach(num => {
+          const cod = `${niv}${num}`;
+          const datos = obtenerDatosDpto(cod, num);
+          const listaMat = obtenerListaBaseParaDpto(num);
+
+          let dptoReq = 0;
+          let dptoCompletado = 0;
+
+          // Insumos
+          listaMat.forEach(m => {
+            const req = (datos.reqPersonalizado && datos.reqPersonalizado[m.id] !== undefined) ? datos.reqPersonalizado[m.id] : m.cant;
+            const ent = datos.entregado[m.id] || 0;
+            dptoReq += req;
+            dptoCompletado += Math.min(ent, req);
+          });
+
+          // Prueba de fuga/presión suma 1 punto de control
+          dptoReq += 1;
+          if (datos.presion) dptoCompletado += 1;
+
+          totalPuntosRequeridos += dptoReq;
+          totalPuntosCompletados += dptoCompletado;
+
+          // Estadísticas por departamento
+          const est = calcularEstado(cod, num, datos);
+          if (est === 'OK') dptosListos++;
+          else if (est === 'PARCIAL') dptosParciales++;
+          else dptosPendientes++;
+        });
+      });
+
+      const pct = totalPuntosRequeridos > 0 ? Math.round((totalPuntosCompletados / totalPuntosRequeridos) * 100) : 0;
+
+      document.getElementById('porcentaje-header').innerText = `${pct}%`;
+      document.getElementById('barra-progreso-header').style.width = `${pct}%`;
+
+      document.getElementById('stat-listos').innerText = dptosListos;
+      document.getElementById('stat-parciales').innerText = dptosParciales;
+      document.getElementById('stat-pendientes').innerText = dptosPendientes;
     }
 
     function renderPlano() {
@@ -386,6 +465,7 @@
       guardarDatos();
       actualizarUIBotonesPrincipales(datos, numDptoSeleccionado);
       renderPlano();
+      actualizarPorcentajeAvanceObra();
     }
 
     function marcarTodoRealizado() {
@@ -403,6 +483,7 @@
       actualizarUIBotonesPrincipales(datos, numDptoSeleccionado);
       renderListaFaltantes(dptoSeleccionadoCod, numDptoSeleccionado, datos);
       renderPlano();
+      actualizarPorcentajeAvanceObra();
     }
 
     function toggleListaFaltantes() {
@@ -449,6 +530,7 @@
       guardarDatos();
       actualizarUIBotonesPrincipales(dptosDatos[codigo], numDptoSeleccionado);
       renderPlano();
+      actualizarPorcentajeAvanceObra();
     }
 
     function cerrarDesplegable() {
@@ -647,6 +729,7 @@
         nomInput.value = '';
         cantInput.value = '';
         renderGestionMateriales();
+        actualizarPorcentajeAvanceObra();
       }
     }
 
@@ -688,6 +771,7 @@
       localStorage.setItem('obra_comunes_v6', JSON.stringify(comunes));
       localStorage.setItem('obra_deposito_v6', JSON.stringify(deposito));
 
+      actualizarPorcentajeAvanceObra();
       alert('¡Todo guardado correctamente!');
     }
 
