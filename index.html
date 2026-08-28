@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Control de Obra y Stock - Edificio</title>
+  <title>Control de Instalaciones y Pedidos</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     .tab-active { border-bottom: 3px solid #1d4ed8; color: #1d4ed8; font-weight: bold; }
@@ -12,32 +12,31 @@
 <body class="bg-gray-100 text-gray-800 font-sans pb-10">
 
   <!-- Header -->
-  <header class="bg-blue-800 text-white p-4 shadow-md sticky top-0 z-20 flex justify-between items-center">
+  <header class="bg-blue-800 text-white p-3 shadow-md sticky top-0 z-20 flex justify-between items-center">
     <div>
-      <h1 class="text-xl font-bold">Control de Instalaciones</h1>
-      <p class="text-xs text-blue-200">Fachada Principal / Plantas Tipo</p>
+      <h1 class="text-lg font-bold">Control de Obra</h1>
+      <p class="text-xs text-blue-200">100 Departamentos + Comunes</p>
     </div>
   </header>
 
   <!-- Navegación -->
-  <nav class="bg-white shadow flex justify-around border-b border-gray-200 text-xs sm:text-sm font-medium sticky top-[60px] z-20">
+  <nav class="bg-white shadow flex justify-around border-b border-gray-200 text-xs font-medium sticky top-[52px] z-20">
     <button id="tab1" onclick="switchTab('plano')" class="py-3 px-1 tab-active flex-1 text-center">Plano / Dptos</button>
-    <button id="tab2" onclick="switchTab('comunes')" class="py-3 px-1 flex-1 text-center">Azotea / Estac.</button>
-    <button id="tab3" onclick="switchTab('deposito')" class="py-3 px-1 flex-1 text-center">Depósito</button>
-    <button id="tab4" onclick="switchTab('pedido')" class="py-3 px-1 flex-1 text-center">Pedidos / Faltantes</button>
-    <button id="tab5" onclick="switchTab('config')" class="py-3 px-1 flex-1 text-center">Plantilla Base</button>
+    <button id="tab2" onclick="switchTab('entregas')" class="py-3 px-1 flex-1 text-center">Vista Rápida Entregas</button>
+    <button id="tab3" onclick="switchTab('pedidos')" class="py-3 px-1 flex-1 text-center">Pedidos / Faltantes</button>
+    <button id="tab4" onclick="switchTab('materiales')" class="py-3 px-1 flex-1 text-center">Gestión Materiales</button>
   </nav>
 
   <main class="p-3 max-w-4xl mx-auto space-y-4">
 
-    <!-- PESTAÑA 1: PLANO Y DEPARTAMENTOS -->
+    <!-- PESTAÑA 1: PLANO Y DESPLEGABLE DE FALTANTES -->
     <section id="sec-plano" class="space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <div class="flex flex-wrap justify-between items-center gap-2 mb-3">
-          <h2 class="font-bold text-lg text-gray-800">Distribución de Planta</h2>
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="font-bold text-base text-gray-800">Planta General</h2>
           <div class="flex items-center gap-2">
-            <label class="text-xs font-semibold">Seleccionar Nivel:</label>
-            <select id="select-nivel" onchange="renderPlano()" class="p-1 border rounded bg-gray-50 text-sm font-bold">
+            <label class="text-xs font-semibold">Nivel:</label>
+            <select id="select-nivel" onchange="renderPlano(); cerrarDesplegable();" class="p-1 border rounded bg-gray-50 text-xs font-bold">
               <option value="A">Nivel A (Piso 1)</option>
               <option value="B">Nivel B (Piso 2)</option>
               <option value="C">Nivel C (Piso 3)</option>
@@ -48,126 +47,71 @@
           </div>
         </div>
 
-        <p class="text-xs text-gray-500 mb-4">Misma distribución que el plano de obra. Tocá un departamento para ver la ficha completa, editar sus materiales particulares o entregar pedidos.</p>
-
-        <!-- LAYOUT PLANO SEGÚN IMAGEN -->
-        <div class="border-2 border-gray-300 rounded-lg p-3 bg-gray-50 space-y-6">
-          
-          <!-- FILA SUPERIOR: A16 a A9 -->
+        <!-- LAYOUT PLANO (ENFRENTADOS SEGÚN IMAGEN) -->
+        <div class="border-2 border-gray-300 rounded-lg p-2 bg-gray-50 space-y-4">
           <div>
             <span class="text-[10px] font-bold text-gray-400 block mb-1">IZQUIERDA (A16 - A9)</span>
-            <div id="fila-superior" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
+            <div id="fila-superior" class="grid grid-cols-4 sm:grid-cols-8 gap-1.5"></div>
           </div>
 
-          <!-- PASILLO / NÚCLEO CENTRAL -->
-          <div class="flex justify-between items-center bg-gray-200 px-4 py-1 rounded text-[11px] font-bold text-gray-600">
-            <span>◄ PASILLO CENTRAL</span>
-            <span>NÚCLEO ESCALERAS / ASCENSOR</span>
-            <span>FACHADA PRINCIPAL ►</span>
+          <div class="bg-gray-200 px-2 py-1 rounded text-[10px] font-bold text-gray-600 text-center">
+            PASILLO CENTRAL / ESCALERAS
           </div>
 
-          <!-- FILA INFERIOR: A1 a A8 -->
           <div>
             <span class="text-[10px] font-bold text-gray-400 block mb-1">DERECHA (A1 - A8)</span>
-            <div id="fila-inferior" class="grid grid-cols-4 sm:grid-cols-8 gap-2"></div>
+            <div id="fila-inferior" class="grid grid-cols-4 sm:grid-cols-8 gap-1.5"></div>
           </div>
-
         </div>
 
-        <div class="mt-3 flex items-center justify-around text-xs text-gray-600">
-          <div class="flex items-center gap-1"><span class="w-3 h-3 bg-green-500 rounded"></span> Completo</div>
-          <div class="flex items-center gap-1"><span class="w-3 h-3 bg-yellow-400 rounded"></span> Con Pendientes</div>
-          <div class="flex items-center gap-1"><span class="w-3 h-3 bg-gray-200 border rounded"></span> Sin Iniciar</div>
-        </div>
-      </div>
-    </section>
-
-    <!-- MODAL DETALLE / EDICIÓN DE DEPARTAMENTO -->
-    <div id="modal-dpto" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center p-3 z-50">
-      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-4 space-y-4">
-        <div class="flex justify-between items-center border-b pb-2">
-          <h3 id="modal-titulo" class="font-bold text-lg text-blue-900">Dpto</h3>
-          <button onclick="cerrarModal()" class="text-gray-500 text-xl font-bold">✕</button>
-        </div>
-
-        <!-- PRUEBA DE PRESIÓN Y AIRES -->
-        <div class="bg-blue-50 p-3 rounded-lg border border-blue-200 text-xs space-y-2">
-          <div class="flex justify-between items-center">
-            <label class="font-bold text-gray-700">Prueba de Presión Realizada:</label>
-            <input type="checkbox" id="modal-presion" onchange="guardarCambiosModal()" class="w-5 h-5 accent-blue-600">
-          </div>
-          <div class="grid grid-cols-2 gap-2 pt-1 border-t border-blue-200">
+        <!-- DESPLEGABLE DE DETALLE Y FALTANTES DEL DPTO SELECCIONADO -->
+        <div id="panel-desplegable-dpto" class="hidden mt-4 border-2 border-blue-500 rounded-xl p-3 bg-blue-50/30 space-y-3">
+          <div class="flex justify-between items-center border-b border-blue-200 pb-2">
             <div>
-              <label class="block text-[11px] font-semibold">Aires 12.000 BTU (cant):</label>
-              <input type="number" id="modal-aires" onchange="guardarCambiosModal()" class="w-full p-1 border rounded mt-1" min="0">
+              <h3 id="desplegable-titulo" class="font-bold text-sm text-blue-900">Dpto</h3>
+              <p class="text-[10px] text-gray-500">Anotá entregas o consultá faltantes directos</p>
+            </div>
+            <button onclick="cerrarDesplegable()" class="text-gray-400 hover:text-gray-700 font-bold text-sm">Cerrar ✕</button>
+          </div>
+
+          <!-- DATOS GENERALES Y PRUEBAS -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs bg-white p-2 rounded-lg border">
+            <div>
+              <label class="block text-[10px] text-gray-500">Prueba Presión:</label>
+              <input type="checkbox" id="disp-presion" onchange="guardarCambiosDesplegable()" class="accent-blue-600 w-4 h-4 mt-1">
             </div>
             <div>
-              <label class="block text-[11px] font-semibold">TM Trifásica 25A:</label>
-              <input type="number" id="modal-tm-tri" onchange="guardarCambiosModal()" class="w-full p-1 border rounded mt-1" min="0">
+              <label class="block text-[10px] text-gray-500">Aires 12.000 BTU:</label>
+              <input type="number" id="disp-aires" onchange="guardarCambiosDesplegable()" class="w-full p-1 border rounded text-xs font-bold mt-0.5">
             </div>
-            <div class="col-span-2">
-              <label class="block text-[11px] font-semibold">TM Monofásica 20A (cant):</label>
-              <input type="number" id="modal-tm-mono" onchange="guardarCambiosModal()" class="w-full p-1 border rounded mt-1" min="0">
+            <div>
+              <label class="block text-[10px] text-gray-500">TM Trifásica 25A:</label>
+              <input type="number" id="disp-tm-tri" onchange="guardarCambiosDesplegable()" class="w-full p-1 border rounded text-xs font-bold mt-0.5">
+            </div>
+            <div>
+              <label class="block text-[10px] text-gray-500">TM Monofásica 20A:</label>
+              <input type="number" id="disp-tm-mono" onchange="guardarCambiosDesplegable()" class="w-full p-1 border rounded text-xs font-bold mt-0.5">
             </div>
           </div>
-        </div>
 
-        <!-- CONTROL DE MATERIALES ENTREGADOS / PENDIENTES -->
-        <div>
-          <h4 class="font-bold text-sm text-gray-800 mb-1">Entregas y Pendientes de Instalación</h4>
-          <p class="text-[11px] text-gray-500 mb-2">Ingresá la cantidad efectivamente entregada/instalada en este departamento.</p>
-          <div id="modal-lista-materiales" class="space-y-2 max-h-[35vh] overflow-y-auto pr-1"></div>
-        </div>
-
-        <div class="flex gap-2 border-t pt-3">
-          <button onclick="guardarCambiosModal(); cerrarModal();" class="flex-1 bg-blue-600 text-white py-2 rounded-lg font-bold text-xs hover:bg-blue-700">Guardar Ficha</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- PESTAÑA 2: ÁREAS COMUNES (AZOTEA Y ESTACIONAMIENTOS) -->
-    <section id="sec-comunes" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-lg mb-1 text-gray-800">Áreas Comunes</h2>
-        <p class="text-xs text-gray-500 mb-4">Configurá materiales para los quinchos y pisos de estacionamiento cuando los tengas listos.</p>
-        
-        <div class="space-y-4">
-          <div class="border p-3 rounded-lg bg-gray-50">
-            <h3 class="font-bold text-sm text-blue-800 mb-2">Azotea (2 Quinchos con Parrillas)</h3>
-            <div id="comunes-azotea" class="space-y-2"></div>
-            <button onclick="agregarItemComun('azotea')" class="mt-2 text-xs bg-gray-800 text-white px-2 py-1 rounded">+ Agregar Insumo</button>
-          </div>
-
-          <div class="border p-3 rounded-lg bg-gray-50">
-            <h3 class="font-bold text-sm text-blue-800 mb-2">Estacionamientos (2 Niveles)</h3>
-            <div id="comunes-estac" class="space-y-2"></div>
-            <button onclick="agregarItemComun('estac')" class="mt-2 text-xs bg-gray-800 text-white px-2 py-1 rounded">+ Agregar Insumo</button>
+          <!-- LISTA DESPLEGABLE DE MATERIALES / FALTANTES -->
+          <div>
+            <h4 class="font-bold text-xs text-gray-700 mb-1">Lista de Pendientes / Entregas en este Dpto:</h4>
+            <div id="disp-lista-materiales" class="space-y-1.5 max-h-[40vh] overflow-y-auto pr-1"></div>
           </div>
         </div>
 
-        <button onclick="guardarComunes()" class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg font-semibold text-xs">Guardar Áreas Comunes</button>
       </div>
     </section>
 
-    <!-- PESTAÑA 3: DEPÓSITO -->
-    <section id="sec-deposito" class="hidden space-y-4">
+    <!-- PESTAÑA 2: VISTA RÁPIDA DE MATERIALES A ENTREGAR -->
+    <section id="sec-entregas" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-lg mb-1 text-gray-800">Stock Físico en Depósito</h2>
-        <p class="text-xs text-gray-500 mb-4">Ingresá las cantidades disponibles actualmente en pañol.</p>
-        <div id="lista-deposito" class="space-y-2 max-h-[55vh] overflow-y-auto pr-1"></div>
-        <button onclick="guardarDeposito()" class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg font-semibold text-xs">Guardar Stock Depósito</button>
-      </div>
-    </section>
+        <h2 class="font-bold text-base text-gray-800 mb-1">Vistas Rápida para Entrega a Personales</h2>
+        <p class="text-xs text-gray-500 mb-3">Elegí el departamento o piso completo para armar el kit de entrega.</p>
 
-    <!-- PESTAÑA 4: PEDIDOS Y FALTANTES -->
-    <section id="sec-pedido" class="hidden space-y-4">
-      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-lg mb-2 text-gray-800">Cálculo de Pedidos y Faltantes</h2>
-        
-        <div class="mb-4">
-          <label class="block text-xs font-semibold mb-1">Filtrar para:</label>
-          <select id="select-filtro-pedido" onchange="calcularPedido()" class="w-full p-2 border rounded bg-gray-50 text-xs font-bold">
-            <option value="obra">Obra Completa (Todos los niveles + Comunes)</option>
+        <div class="flex gap-2 mb-4">
+          <select id="select-entrega-nivel" onchange="calcularVistaEntrega()" class="p-2 border rounded text-xs bg-gray-50 font-bold flex-1">
             <option value="A">Nivel A (Piso 1)</option>
             <option value="B">Nivel B (Piso 2)</option>
             <option value="C">Nivel C (Piso 3)</option>
@@ -175,35 +119,95 @@
             <option value="E">Nivel E (Piso 5)</option>
             <option value="F">Nivel F (Piso 6)</option>
           </select>
+
+          <select id="select-entrega-dpto" onchange="calcularVistaEntrega()" class="p-2 border rounded text-xs bg-gray-50 font-bold flex-1">
+            <option value="TODOS">Todo el Piso</option>
+            <!-- Opciones Dptos por JS -->
+          </select>
         </div>
 
-        <div id="resumen-pedido" class="space-y-2 border-t pt-3"></div>
+        <div id="resumen-vista-entrega" class="space-y-1.5 border-t pt-3"></div>
 
-        <button onclick="copiarPedidoWhatsApp()" class="w-full mt-4 bg-emerald-600 text-white py-2 rounded-lg font-semibold text-xs flex items-center justify-center gap-2">
-          Copiar Pedido para WhatsApp
+        <button onclick="copiarListaEntregaWhatsApp()" class="w-full mt-4 bg-emerald-600 text-white py-2 rounded-lg font-bold text-xs hover:bg-emerald-700 shadow">
+          Copiar Lista de Entrega
         </button>
       </div>
     </section>
 
-    <!-- PESTAÑA 5: PLANTILLA BASE -->
-    <section id="sec-config" class="hidden space-y-4">
+    <!-- PESTAÑA 3: PEDIDOS Y FALTANTES GLOBALES -->
+    <section id="sec-pedidos" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-lg mb-1 text-gray-800">Plantilla Estándar (12 Dptos)</h2>
-        <p class="text-xs text-gray-500 mb-4">Los departamentos normales tomarán esta lista como base automáticamente.</p>
-
-        <div id="lista-materiales-config" class="space-y-2 max-h-[45vh] overflow-y-auto pr-1"></div>
-
-        <div class="mt-4 pt-3 border-t space-y-2">
-          <h3 class="font-semibold text-xs text-gray-700">Agregar ítem a la plantilla:</h3>
-          <div class="flex gap-2">
-            <input type="text" id="nuevo-item-nombre" placeholder="Nombre material" class="p-2 border rounded text-xs flex-1">
-            <input type="number" id="nuevo-item-cant" placeholder="Cant." class="p-2 border rounded text-xs w-20" min="1">
-            <button onclick="agregarNuevoMaterial()" class="bg-gray-800 text-white px-3 py-1 rounded text-xs">Agregar</button>
-          </div>
+        <h2 class="font-bold text-base text-gray-800 mb-1">Balance General y Pedido de Compra</h2>
+        
+        <div class="mb-3">
+          <select id="select-filtro-pedido" onchange="calcularPedidoGlobal()" class="w-full p-2 border rounded bg-gray-50 text-xs font-bold">
+            <option value="obra">Obra Completa (Todos los Niveles)</option>
+            <option value="A">Solo Nivel A</option>
+            <option value="B">Solo Nivel B</option>
+            <option value="C">Solo Nivel C</option>
+            <option value="D">Solo Nivel D</option>
+            <option value="E">Solo Nivel E</option>
+            <option value="F">Solo Nivel F</option>
+          </select>
         </div>
 
-        <button onclick="guardarConfiguracionMateriales()" class="w-full mt-4 bg-blue-600 text-white py-2 rounded-lg font-semibold text-xs">Guardar Plantilla Base</button>
+        <div id="resumen-pedido-global" class="space-y-1.5 border-t pt-3"></div>
+
+        <button onclick="copiarPedidoCompraWhatsApp()" class="w-full mt-4 bg-blue-700 text-white py-2 rounded-lg font-bold text-xs hover:bg-blue-800 shadow">
+          Copiar Pedido a Proveedor
+        </button>
       </div>
+    </section>
+
+    <!-- PESTAÑA 4: UNICA PESTAÑA PARA EDITAR MATERIALES, COMUNES Y DEPÓSITO -->
+    <section id="sec-materiales" class="hidden space-y-4">
+      
+      <!-- SUB-BLOQUE: PLANTILLA BASE POR DPTO -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <h2 class="font-bold text-base text-gray-800 mb-1">1. Plantilla Estándar por Departamento</h2>
+        <p class="text-xs text-gray-500 mb-3">Definí los materiales que lleva un departamento tipo.</p>
+
+        <div id="lista-plantilla-base" class="space-y-1.5 max-h-[35vh] overflow-y-auto pr-1"></div>
+
+        <div class="mt-3 pt-2 border-t flex gap-2">
+          <input type="text" id="nuevo-mat-nombre" placeholder="Nuevo Insumo" class="p-1.5 border rounded text-xs flex-1">
+          <input type="number" id="nuevo-mat-cant" placeholder="Cant" class="p-1.5 border rounded text-xs w-16 text-center">
+          <button onclick="agregarMaterialPlantilla()" class="bg-gray-800 text-white px-3 py-1 rounded text-xs font-bold">Agregar</button>
+        </div>
+      </div>
+
+      <!-- SUB-BLOQUE: ÁREAS COMUNES -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <h2 class="font-bold text-base text-gray-800 mb-1">2. Materiales para Áreas Comunes</h2>
+        <p class="text-xs text-gray-500 mb-3">Configurá Azotea (2 Quinchos) y Estacionamientos.</p>
+
+        <div class="space-y-3">
+          <div class="p-2 border rounded bg-gray-50">
+            <span class="font-bold text-xs text-blue-900 block mb-1">Azotea / Quinchos:</span>
+            <div id="lista-comunes-azotea" class="space-y-1"></div>
+            <button onclick="agregarComun('azotea')" class="mt-2 text-[10px] bg-gray-700 text-white px-2 py-0.5 rounded">+ Agregar Item</button>
+          </div>
+
+          <div class="p-2 border rounded bg-gray-50">
+            <span class="font-bold text-xs text-blue-900 block mb-1">Pisos Estacionamiento:</span>
+            <div id="lista-comunes-estac" class="space-y-1"></div>
+            <button onclick="agregarComun('estac')" class="mt-2 text-[10px] bg-gray-700 text-white px-2 py-0.5 rounded">+ Agregar Item</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- SUB-BLOQUE: STOCK DEPÓSITO -->
+      <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+        <h2 class="font-bold text-base text-gray-800 mb-1">3. Stock Físico en Depósito</h2>
+        <p class="text-xs text-gray-500 mb-3">Cargá lo disponible en el pañol/depósito.</p>
+
+        <div id="lista-deposito-gestion" class="space-y-1.5 max-h-[35vh] overflow-y-auto pr-1"></div>
+
+        <button onclick="guardarTodoGestionMateriales()" class="w-full mt-4 bg-green-600 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-green-700 shadow">
+          Guardar Todos los Cambios
+        </button>
+      </div>
+
     </section>
 
   </main>
@@ -211,10 +215,9 @@
   <script>
     const NIVELES = ['A', 'B', 'C', 'D', 'E', 'F'];
     const DPTOS_NUM = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-    const ESPECIALES = [1, 8, 9, 16]; // Tienen 3 aires por defecto
+    const ESPECIALES = [1, 8, 9, 16];
 
-    // Plantilla de materiales base por departamento
-    const plantillaInicial = [
+    const plantillaBaseInicial = [
       { id: 'l1', nombre: 'Redondo sobreponer cálido 30W', cant: 1 },
       { id: 'l2', nombre: 'Redondo sobreponer cálido 24W', cant: 1 },
       { id: 'l3', nombre: 'Redondo sobreponer cálido 9W', cant: 3 },
@@ -229,36 +232,35 @@
       { id: 'tb', nombre: 'Pico timbre', cant: 16 }
     ];
 
-    let materiales = JSON.parse(localStorage.getItem('obra_materiales_v2')) || plantillaInicial;
-    let dptosDatos = JSON.parse(localStorage.getItem('obra_dptos_datos_v2')) || {};
-    let deposito = JSON.parse(localStorage.getItem('obra_deposito_v2')) || {};
-    let comunes = JSON.parse(localStorage.getItem('obra_comunes_v2')) || { azotea: [], estac: [] };
+    let materiales = JSON.parse(localStorage.getItem('obra_materiales_v3')) || plantillaBaseInicial;
+    let dptosDatos = JSON.parse(localStorage.getItem('obra_dptos_datos_v3')) || {};
+    let deposito = JSON.parse(localStorage.getItem('obra_deposito_v3')) || {};
+    let comunes = JSON.parse(localStorage.getItem('obra_comunes_v3')) || { azotea: [], estac: [] };
 
-    let dptoActualSeleccionado = null;
+    let dptoSeleccionadoCod = null;
 
     function init() {
       renderPlano();
-      renderConfigMateriales();
-      renderDeposito();
-      renderComunes();
+      poblarSelectEntregaDptos();
+      renderGestionMateriales();
     }
 
     function switchTab(tab) {
-      ['plano', 'comunes', 'deposito', 'pedido', 'config'].forEach((t, i) => {
+      ['plano', 'entregas', 'pedidos', 'materiales'].forEach((t, i) => {
         document.getElementById(`sec-${t}`).classList.add('hidden');
         document.getElementById(`tab${i+1}`).classList.remove('tab-active');
       });
       
-      const map = { 'plano': 1, 'comunes': 2, 'deposito': 3, 'pedido': 4, 'config': 5 };
+      const map = { 'plano': 1, 'entregas': 2, 'pedidos': 3, 'materiales': 4 };
       document.getElementById(`sec-${tab}`).classList.remove('hidden');
       document.getElementById(`tab${map[tab]}`).classList.add('tab-active');
 
-      if (tab === 'deposito') renderDeposito();
-      if (tab === 'pedido') calcularPedido();
-      if (tab === 'comunes') renderComunes();
+      if (tab === 'entregas') calcularVistaEntrega();
+      if (tab === 'pedidos') calcularPedidoGlobal();
+      if (tab === 'materiales') renderGestionMateriales();
     }
 
-    // --- RENDER PLANO ---
+    // --- PLANO & DESPLEGABLE ---
     function renderPlano() {
       const nivel = document.getElementById('select-nivel').value;
       const sup = document.getElementById('fila-superior');
@@ -266,42 +268,32 @@
       sup.innerHTML = '';
       inf.innerHTML = '';
 
-      // Fila superior: A16 a A9
-      for (let i = 16; i >= 9; i--) {
-        const cod = `${nivel}${i}`;
-        sup.innerHTML += generarBotonDpto(cod, i);
-      }
-
-      // Fila inferior: A1 a A8
-      for (let i = 1; i <= 8; i++) {
-        const cod = `${nivel}${i}`;
-        inf.innerHTML += generarBotonDpto(cod, i);
-      }
+      for (let i = 16; i >= 9; i--) sup.innerHTML += generarBotonPlano(`${nivel}${i}`, i);
+      for (let i = 1; i <= 8; i++) inf.innerHTML += generarBotonPlano(`${nivel}${i}`, i);
     }
 
-    function generarBotonDpto(codigo, num) {
+    function generarBotonPlano(codigo, num) {
       const datos = obtenerDatosDpto(codigo, num);
-      const estado = calcularEstadoDpto(codigo, datos);
+      const est = calcularEstado(codigo, datos);
 
-      let color = 'bg-gray-100 border-gray-300 text-gray-700';
-      if (estado === 'OK') color = 'bg-green-500 border-green-600 text-white';
-      if (estado === 'PARCIAL') color = 'bg-yellow-400 border-yellow-500 text-gray-900';
+      let style = 'bg-gray-100 border-gray-300 text-gray-700';
+      if (est === 'OK') style = 'bg-green-500 border-green-600 text-white';
+      if (est === 'PARCIAL') style = 'bg-yellow-400 border-yellow-500 text-gray-900';
 
       return `
-        <button onclick="abrirModalDpto('${codigo}', ${num})" 
-          class="p-2 rounded-md border font-bold text-xs flex flex-col items-center justify-center transition shadow-sm ${color}">
+        <button onclick="abrirDesplegableDpto('${codigo}', ${num})" 
+          class="p-2 rounded border font-bold text-xs flex flex-col items-center justify-center transition ${style}">
           <span>${codigo}</span>
-          <span class="text-[9px] opacity-80 font-normal">${ESPECIALES.includes(num) ? 'Esp.' : 'Std'}</span>
+          <span class="text-[8px] font-normal opacity-80">${ESPECIALES.includes(num) ? 'Esp' : 'Std'}</span>
         </button>
       `;
     }
 
     function obtenerDatosDpto(codigo, num) {
       if (!dptosDatos[codigo]) {
-        const esEsp = ESPECIALES.includes(num);
         dptosDatos[codigo] = {
           presion: false,
-          aires: esEsp ? 3 : 2,
+          aires: ESPECIALES.includes(num) ? 3 : 2,
           tmTri: 1,
           tmMono: 6,
           entregado: {}
@@ -310,151 +302,153 @@
       return dptosDatos[codigo];
     }
 
-    function calcularEstadoDpto(codigo, datos) {
-      let algoEntregado = false;
-      let todoEntregado = true;
+    function calcularEstado(codigo, datos) {
+      let entCount = 0;
+      let totalReq = 0;
 
       materiales.forEach(m => {
-        const req = (datos.reqEspecial && datos.reqEspecial[m.id] !== undefined) ? datos.reqEspecial[m.id] : m.cant;
+        const req = (datos.reqEsp && datos.reqEsp[m.id] !== undefined) ? datos.reqEsp[m.id] : m.cant;
         const ent = datos.entregado[m.id] || 0;
-        if (ent > 0) algoEntregado = true;
-        if (ent < req) todoEntregado = false;
+        entCount += ent;
+        totalReq += req;
       });
 
-      if (todoEntregado && datos.presion) return 'OK';
-      if (algoEntregado || datos.presion) return 'PARCIAL';
+      if (entCount >= totalReq && datos.presion) return 'OK';
+      if (entCount > 0 || datos.presion) return 'PARCIAL';
       return 'PENDIENTE';
     }
 
-    // --- MODAL DEPARTAMENTO ---
-    function abrirModalDpto(codigo, num) {
-      dptoActualSeleccionado = codigo;
+    function abrirDesplegableDpto(codigo, num) {
+      dptoSeleccionadoCod = codigo;
       const datos = obtenerDatosDpto(codigo, num);
 
-      document.getElementById('modal-titulo').innerText = `Departamento ${codigo} ${ESPECIALES.includes(num) ? '(Especial)' : ''}`;
-      document.getElementById('modal-presion').checked = datos.presion;
-      document.getElementById('modal-aires').value = datos.aires;
-      document.getElementById('modal-tm-tri').value = datos.tmTri;
-      document.getElementById('modal-tm-mono').value = datos.tmMono;
+      document.getElementById('desplegable-titulo').innerText = `Dpto ${codigo} ${ESPECIALES.includes(num) ? '(Configuración Especial)' : ''}`;
+      document.getElementById('disp-presion').checked = datos.presion;
+      document.getElementById('disp-aires').value = datos.aires;
+      document.getElementById('disp-tm-tri').value = datos.tmTri;
+      document.getElementById('disp-tm-mono').value = datos.tmMono;
 
-      const cont = document.getElementById('modal-lista-materiales');
+      const cont = document.getElementById('disp-lista-materiales');
       cont.innerHTML = '';
 
       materiales.forEach(m => {
-        const req = (datos.reqEspecial && datos.reqEspecial[m.id] !== undefined) ? datos.reqEspecial[m.id] : m.cant;
+        const req = (datos.reqEsp && datos.reqEsp[m.id] !== undefined) ? datos.reqEsp[m.id] : m.cant;
         const ent = datos.entregado[m.id] || 0;
+        const faltante = Math.max(0, req - ent);
 
         cont.innerHTML += `
-          <div class="p-2 border rounded bg-gray-50 text-xs space-y-1">
-            <div class="flex justify-between font-bold">
-              <span>${m.nombre}</span>
-              <span class="text-blue-700">Req Total: <input type="number" value="${req}" onchange="cambiarReqEspecial('${codigo}', '${m.id}', this.value)" class="w-12 p-0.5 border text-center rounded text-xs bg-white"></span>
+          <div class="flex items-center justify-between bg-white p-1.5 rounded border text-xs">
+            <div class="flex-1">
+              <span class="font-medium text-gray-800 block">${m.nombre}</span>
+              <span class="text-[10px] ${faltante > 0 ? 'text-red-600 font-bold' : 'text-green-600'}">
+                ${faltante > 0 ? 'Faltan: ' + faltante : 'Completo'}
+              </span>
             </div>
-            <div class="flex justify-between items-center text-[11px]">
-              <span class="${ent >= req ? 'text-green-600 font-bold' : 'text-amber-700'}">Entregado/Instalado:</span>
-              <input type="number" value="${ent}" min="0" onchange="cambiarEntregado('${codigo}', '${m.id}', this.value)" class="w-16 p-1 border rounded text-center font-bold">
+            <div class="flex items-center gap-1">
+              <span class="text-[10px] text-gray-400">Entregado:</span>
+              <input type="number" value="${ent}" min="0" onchange="actualizarEntregadoDpto('${codigo}', '${m.id}', this.value)" class="w-14 p-1 border rounded text-center font-bold text-xs">
             </div>
           </div>
         `;
       });
 
-      document.getElementById('modal-dpto').classList.remove('hidden');
+      document.getElementById('panel-desplegable-dpto').classList.remove('hidden');
     }
 
-    function cambiarReqEspecial(codigo, matId, valor) {
-      if (!dptosDatos[codigo].reqEspecial) dptosDatos[codigo].reqEspecial = {};
-      dptosDatos[codigo].reqEspecial[matId] = parseInt(valor) || 0;
+    function actualizarEntregadoDpto(codigo, matId, val) {
+      dptosDatos[codigo].entregado[matId] = parseInt(val) || 0;
       guardarDatos();
+      renderPlano();
     }
 
-    function cambiarEntregado(codigo, matId, valor) {
-      dptosDatos[codigo].entregado[matId] = parseInt(valor) || 0;
-      guardarDatos();
-    }
-
-    function guardarCambiosModal() {
-      if (!dptoActualSeleccionado) return;
-      const datos = dptosDatos[dptoActualSeleccionado];
-      datos.presion = document.getElementById('modal-presion').checked;
-      datos.aires = parseInt(document.getElementById('modal-aires').value) || 0;
-      datos.tmTri = parseInt(document.getElementById('modal-tm-tri').value) || 0;
-      datos.tmMono = parseInt(document.getElementById('modal-tm-mono').value) || 0;
+    function guardarCambiosDesplegable() {
+      if (!dptoSeleccionadoCod) return;
+      const d = dptosDatos[dptoSeleccionadoCod];
+      d.presion = document.getElementById('disp-presion').checked;
+      d.aires = parseInt(document.getElementById('disp-aires').value) || 0;
+      d.tmTri = parseInt(document.getElementById('disp-tm-tri').value) || 0;
+      d.tmMono = parseInt(document.getElementById('disp-tm-mono').value) || 0;
 
       guardarDatos();
       renderPlano();
     }
 
-    function cerrarModal() {
-      document.getElementById('modal-dpto').classList.add('hidden');
-      dptoActualSeleccionado = null;
+    function cerrarDesplegable() {
+      document.getElementById('panel-desplegable-dpto').classList.add('hidden');
+      dptoSeleccionadoCod = null;
     }
 
     function guardarDatos() {
-      localStorage.setItem('obra_dptos_datos_v2', JSON.stringify(dptosDatos));
+      localStorage.setItem('obra_dptos_datos_v3', JSON.stringify(dptosDatos));
     }
 
-    // --- ÁREAS COMUNES ---
-    function renderComunes() {
-      ['azotea', 'estac'].forEach(tipo => {
-        const cont = document.getElementById(`comunes-${tipo}`);
-        cont.innerHTML = '';
-        comunes[tipo].forEach((item, idx) => {
-          cont.innerHTML += `
-            <div class="flex items-center gap-2 text-xs">
-              <input type="text" value="${item.nombre}" onchange="comunes['${tipo}'][${idx}].nombre = this.value" class="flex-1 p-1 border rounded">
-              <input type="number" value="${item.cant}" onchange="comunes['${tipo}'][${idx}].cant = parseInt(this.value)||0" class="w-16 p-1 border rounded text-center">
-              <button onclick="comunes['${tipo}'].splice(${idx},1); renderComunes();" class="text-red-500 font-bold">✕</button>
-            </div>
-          `;
+    // --- VISTA RÁPIDA DE ENTREGAS ---
+    function poblarSelectEntregaDptos() {
+      const sel = document.getElementById('select-entrega-dpto');
+      sel.innerHTML = '<option value="TODOS">Todo el Piso</option>';
+      DPTOS_NUM.forEach(n => sel.innerHTML += `<option value="${n}">Solo Dpto ${n}</option>`);
+    }
+
+    let listaEntregaCalculada = [];
+
+    function calcularVistaEntrega() {
+      const niv = document.getElementById('select-entrega-nivel').value;
+      const dptoFiltro = document.getElementById('select-entrega-dpto').value;
+      const cont = document.getElementById('resumen-vista-entrega');
+      cont.innerHTML = '';
+      listaEntregaCalculada = [];
+
+      let acumulado = {};
+      materiales.forEach(m => acumulado[m.id] = 0);
+
+      const dptosAProcesar = dptoFiltro === 'TODOS' ? DPTOS_NUM : [parseInt(dptoFiltro)];
+
+      dptosAProcesar.forEach(num => {
+        const cod = `${niv}${num}`;
+        const datos = obtenerDatosDpto(cod, num);
+        materiales.forEach(m => {
+          const req = (datos.reqEsp && datos.reqEsp[m.id] !== undefined) ? datos.reqEsp[m.id] : m.cant;
+          const ent = datos.entregado[m.id] || 0;
+          acumulado[m.id] += Math.max(0, req - ent);
         });
       });
-    }
 
-    function agregarItemComun(tipo) {
-      comunes[tipo].push({ nombre: 'Nuevo material', cant: 1 });
-      renderComunes();
-    }
-
-    function guardarComunes() {
-      localStorage.setItem('obra_comunes_v2', JSON.stringify(comunes));
-      alert('Áreas comunes guardadas.');
-    }
-
-    // --- DEPÓSITO ---
-    function renderDeposito() {
-      const cont = document.getElementById('lista-deposito');
-      cont.innerHTML = '';
       materiales.forEach(m => {
-        const val = deposito[m.id] || 0;
-        cont.innerHTML += `
-          <div class="flex justify-between items-center bg-gray-50 p-2 rounded border text-xs">
-            <span class="font-medium flex-1">${m.nombre}</span>
-            <input type="number" id="dep-${m.id}" value="${val}" min="0" class="w-20 p-1 border rounded text-center font-bold">
-          </div>
-        `;
+        const cantFaltante = acumulado[m.id];
+        if (cantFaltante > 0) {
+          listaEntregaCalculada.push({ nombre: m.nombre, cant: cantFaltante });
+          cont.innerHTML += `
+            <div class="flex justify-between items-center bg-gray-50 p-2 rounded border text-xs">
+              <span class="font-bold text-gray-800">${m.nombre}</span>
+              <span class="font-bold text-blue-700 text-sm">${cantFaltante} un.</span>
+            </div>
+          `;
+        }
       });
+
+      if (listaEntregaCalculada.length === 0) {
+        cont.innerHTML = '<p class="text-xs text-green-600 font-bold p-2">¡No hay materiales pendientes de entrega para esta selección!</p>';
+      }
     }
 
-    function guardarDeposito() {
-      materiales.forEach(m => {
-        const input = document.getElementById(`dep-${m.id}`);
-        if (input) deposito[m.id] = parseInt(input.value) || 0;
-      });
-      localStorage.setItem('obra_deposito_v2', JSON.stringify(deposito));
-      alert('Stock actualizado.');
+    function copiarListaEntregaWhatsApp() {
+      if (listaEntregaCalculada.length === 0) return alert('No hay elementos a entregar.');
+      let txt = "*MATERIALES A ENTREGAR PARA OBRA*\n-----------------------------------\n";
+      listaEntregaCalculada.forEach(i => txt += `• ${i.nombre}: *${i.cant} un.*\n`);
+      navigator.clipboard.writeText(txt).then(() => alert('Lista de entregas copiada al portapapeles.'));
     }
 
-    // --- CÁLCULO DE PEDIDOS ---
-    let resumenPedidoFinal = [];
+    // --- PEDIDOS GLOBALES ---
+    let listaPedidoCompraCalculada = [];
 
-    function calcularPedido() {
+    function calcularPedidoGlobal() {
       const filtro = document.getElementById('select-filtro-pedido').value;
-      const cont = document.getElementById('resumen-pedido');
+      const cont = document.getElementById('resumen-pedido-global');
       cont.innerHTML = '';
-      resumenPedidoFinal = [];
+      listaPedidoCompraCalculada = [];
 
-      let acumuladoReq = {};
-      materiales.forEach(m => acumuladoReq[m.id] = 0);
+      let acumuladoPend = {};
+      materiales.forEach(m => acumuladoPend[m.id] = 0);
 
       NIVELES.forEach(niv => {
         if (filtro === 'obra' || filtro === niv) {
@@ -462,76 +456,114 @@
             const cod = `${niv}${num}`;
             const datos = obtenerDatosDpto(cod, num);
             materiales.forEach(m => {
-              const req = (datos.reqEspecial && datos.reqEspecial[m.id] !== undefined) ? datos.reqEspecial[m.id] : m.cant;
+              const req = (datos.reqEsp && datos.reqEsp[m.id] !== undefined) ? datos.reqEsp[m.id] : m.cant;
               const ent = datos.entregado[m.id] || 0;
-              acumuladoReq[m.id] += Math.max(0, req - ent);
+              acumuladoPend[m.id] += Math.max(0, req - ent);
             });
           });
         }
       });
 
       materiales.forEach(m => {
-        const reqFaltante = acumuladoReq[m.id];
-        const enDep = deposito[m.id] || 0;
-        const comprar = Math.max(0, reqFaltante - enDep);
+        const pend = acumuladoPend[m.id];
+        const disp = deposito[m.id] || 0;
+        const aComprar = Math.max(0, pend - disp);
 
-        if (comprar > 0) {
-          resumenPedidoFinal.push({ nombre: m.nombre, cant: comprar });
-        }
+        if (aComprar > 0) listaPedidoCompraCalculada.push({ nombre: m.nombre, cant: aComprar });
 
         cont.innerHTML += `
-          <div class="flex justify-between items-center p-2 rounded ${comprar > 0 ? 'bg-red-50 border border-red-200' : 'bg-green-50'} text-xs">
+          <div class="flex justify-between items-center p-2 rounded text-xs ${aComprar > 0 ? 'bg-red-50 border border-red-200' : 'bg-green-50'}">
             <div>
-              <p class="font-bold">${m.nombre}</p>
-              <p class="text-[10px] text-gray-500">Pendiente Dptos: ${reqFaltante} | En Depósito: ${enDep}</p>
+              <p class="font-bold text-gray-800">${m.nombre}</p>
+              <p class="text-[10px] text-gray-500">Total Faltante Dptos: ${pend} | En Depósito: ${disp}</p>
             </div>
-            <span class="font-bold text-sm ${comprar > 0 ? 'text-red-600' : 'text-green-600'}">
-              ${comprar > 0 ? 'Pedir: ' + comprar : 'OK'}
+            <span class="font-bold text-xs ${aComprar > 0 ? 'text-red-600' : 'text-green-600'}">
+              ${aComprar > 0 ? 'Comprar: ' + aComprar : 'Cubierto'}
             </span>
           </div>
         `;
       });
     }
 
-    function copiarPedidoWhatsApp() {
-      if (resumenPedidoFinal.length === 0) {
-        alert('No hay faltantes para la selección actual.');
-        return;
-      }
+    function copiarPedidoCompraWhatsApp() {
+      if (listaPedidoCompraCalculada.length === 0) return alert('No hay compras pendientes.');
       let txt = "*PEDIDO DE COMPRA DE MATERIALES*\n-----------------------------------\n";
-      resumenPedidoFinal.forEach(i => txt += `• ${i.nombre}: *${i.cant} un.*\n`);
-      navigator.clipboard.writeText(txt).then(() => alert('¡Pedido copiado para WhatsApp!'));
+      listaPedidoCompraCalculada.forEach(i => txt += `• ${i.nombre}: *${i.cant} un.*\n`);
+      navigator.clipboard.writeText(txt).then(() => alert('Pedido de compra copiado.'));
     }
 
-    // --- CONFIGURACIÓN BASE ---
-    function renderConfigMateriales() {
-      const cont = document.getElementById('lista-materiales-config');
-      cont.innerHTML = '';
+    // --- PESTAÑA ÚNICA DE GESTIÓN DE MATERIALES ---
+    function renderGestionMateriales() {
+      // 1. Plantilla
+      const contBase = document.getElementById('lista-plantilla-base');
+      contBase.innerHTML = '';
       materiales.forEach((m, idx) => {
-        cont.innerHTML += `
-          <div class="flex items-center gap-2 bg-gray-50 p-2 rounded border">
-            <input type="text" value="${m.nombre}" onchange="materiales[${idx}].nombre = this.value" class="flex-1 text-xs p-1 border rounded">
-            <input type="number" value="${m.cant}" onchange="materiales[${idx}].cant = parseInt(this.value)||0" class="w-16 text-xs p-1 border rounded text-center">
-            <button onclick="materiales.splice(${idx},1); renderConfigMateriales();" class="text-red-500 font-bold px-1 text-xs">✕</button>
+        contBase.innerHTML += `
+          <div class="flex items-center gap-2 bg-gray-50 p-1.5 rounded border text-xs">
+            <input type="text" value="${m.nombre}" onchange="materiales[${idx}].nombre = this.value" class="flex-1 p-1 border rounded">
+            <input type="number" value="${m.cant}" onchange="materiales[${idx}].cant = parseInt(this.value)||0" class="w-14 p-1 border rounded text-center">
+            <button onclick="materiales.splice(${idx},1); renderGestionMateriales();" class="text-red-500 font-bold px-1">✕</button>
+          </div>
+        `;
+      });
+
+      // 2. Comunes
+      ['azotea', 'estac'].forEach(tipo => {
+        const cont = document.getElementById(`lista-comunes-${tipo}`);
+        cont.innerHTML = '';
+        comunes[tipo].forEach((item, idx) => {
+          cont.innerHTML += `
+            <div class="flex items-center gap-2 text-xs">
+              <input type="text" value="${item.nombre}" onchange="comunes['${tipo}'][${idx}].nombre = this.value" class="flex-1 p-1 border rounded">
+              <input type="number" value="${item.cant}" onchange="comunes['${tipo}'][${idx}].cant = parseInt(this.value)||0" class="w-14 p-1 border rounded text-center">
+              <button onclick="comunes['${tipo}'].splice(${idx},1); renderGestionMateriales();" class="text-red-500 font-bold">✕</button>
+            </div>
+          `;
+        });
+      });
+
+      // 3. Depósito
+      const contDep = document.getElementById('lista-deposito-gestion');
+      contDep.innerHTML = '';
+      materiales.forEach(m => {
+        const val = deposito[m.id] || 0;
+        contDep.innerHTML += `
+          <div class="flex justify-between items-center bg-gray-50 p-1.5 rounded border text-xs">
+            <span class="font-medium text-gray-700 flex-1">${m.nombre}</span>
+            <input type="number" id="dep-gest-${m.id}" value="${val}" min="0" class="w-16 p-1 border rounded text-center font-bold">
           </div>
         `;
       });
     }
 
-    function agregarNuevoMaterial() {
-      const nom = document.getElementById('nuevo-item-nombre').value;
-      const cant = parseInt(document.getElementById('nuevo-item-cant').value) || 0;
+    function agregarMaterialPlantilla() {
+      const nom = document.getElementById('nuevo-mat-nombre').value;
+      const cant = parseInt(document.getElementById('nuevo-mat-cant').value) || 0;
       if (nom && cant > 0) {
         materiales.push({ id: 'm_' + Date.now(), nombre: nom, cant: cant });
-        document.getElementById('nuevo-item-nombre').value = '';
-        document.getElementById('nuevo-item-cant').value = '';
-        renderConfigMateriales();
+        document.getElementById('nuevo-mat-nombre').value = '';
+        document.getElementById('nuevo-mat-cant').value = '';
+        renderGestionMateriales();
       }
     }
 
-    function guardarConfiguracionMateriales() {
-      localStorage.setItem('obra_materiales_v2', JSON.stringify(materiales));
-      alert('Plantilla base actualizada.');
+    function agregarComun(tipo) {
+      comunes[tipo].push({ nombre: 'Nuevo Ítem', cant: 1 });
+      renderGestionMateriales();
+    }
+
+    function guardarTodoGestionMateriales() {
+      // Guardar Depósito
+      materiales.forEach(m => {
+        const input = document.getElementById(`dep-gest-${m.id}`);
+        if (input) deposito[m.id] = parseInt(input.value) || 0;
+      });
+
+      localStorage.setItem('obra_materiales_v3', JSON.stringify(materiales));
+      localStorage.setItem('obra_comunes_v3', JSON.stringify(comunes));
+      localStorage.setItem('obra_deposito_v3', JSON.stringify(deposito));
+
+      alert('¡Toda la configuración de materiales y stock fue guardada correctamente!');
     }
 
     window.onload = init;
