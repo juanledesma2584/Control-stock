@@ -264,7 +264,7 @@
     const ESPECIALES = [1, 8, 9, 16];
 
     const plantillaBaseInicialStd = [
-      { id: 'ac12', nombre: 'Aire Acondicionado 12.000 BTU', cant: 2 },
+      { id: 'ac12', nombre: 'Aire de 12.000btu', cant: 2 },
       { id: 'l1', nombre: 'Redondo sobreponer cálido 30W', cant: 1 },
       { id: 'l2', nombre: 'Redondo sobreponer cálido 24W', cant: 1 },
       { id: 'l3', nombre: 'Redondo sobreponer cálido 9W', cant: 3 },
@@ -282,8 +282,8 @@
     ];
 
     const plantillaBaseInicialEsp = [
-      { id: 'ac12', nombre: 'Aire Acondicionado 12.000 BTU', cant: 2 },
-      { id: 'ac18', nombre: 'Aire Acondicionado 18.000 BTU', cant: 0 },
+      { id: 'ac12', nombre: 'Aire de 12.000btu', cant: 2 },
+      { id: 'ac18', nombre: 'Aire de 18.000btu', cant: 0 },
       { id: 'l1', nombre: 'Redondo sobreponer cálido 30W', cant: 1 },
       { id: 'l2', nombre: 'Redondo sobreponer cálido 24W', cant: 1 },
       { id: 'l3', nombre: 'Redondo sobreponer cálido 9W', cant: 3 },
@@ -302,8 +302,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v15`, `${prefijo}_v14`, `${prefijo}_v13`, `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`, 
-        `${prefijo}_v9`, `${prefijo}_v8`, `${prefijo}_v7`, `${prefijo}_v6`
+        `${prefijo}_v16`, `${prefijo}_v15`, `${prefijo}_v14`, `${prefijo}_v13`, `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`
       ];
       for (let c of claves) {
         try {
@@ -324,30 +323,36 @@
     let dptosDatos = buscarEnCualquierVersion('obra_dptos_datos', {});
     let deposito = buscarEnCualquierVersion('obra_deposito', {});
 
-    // CONSOLIDACIÓN DE TIMBRES (UNIFICACIÓN DE IDS ESP/STD)
-    function consolidarTimbresEspeciales() {
-      materialesEsp.forEach((m, idx) => {
-        if (m.id === 'tb_esp' || m.nombre.toLowerCase().includes('timbre')) {
-          m.id = 'tb';
-          m.cant = 1;
-        }
+    // CORRECCIÓN AUTOMÁTICA DEL AIRE DE 18.000 BTU DUPLICADO
+    function corregirDuplicadoAire18() {
+      // 1. Verificar si en la plantilla especial no existe o está mal nombrado
+      let ac18Esp = materialesEsp.find(m => m.id === 'ac18');
+      if (!ac18Esp) {
+        materialesEsp.push({ id: 'ac18', nombre: 'Aire de 18.000btu', cant: 0 });
+      } else {
+        ac18Esp.nombre = 'Aire de 18.000btu';
+      }
+
+      // 2. Corregir IDs duplicados en el deposito
+      let clavesDep = Object.keys(deposito);
+      let duplicados12 = clavesDep.filter(k => {
+        let mat = materialesStd.concat(materialesEsp).find(m => m.id === k);
+        return mat && mat.nombre === 'Aire de 12.000btu';
       });
 
-      Object.keys(dptosDatos).forEach(cod => {
-        if (dptosDatos[cod] && dptosDatos[cod].faltantes) {
-          if (dptosDatos[cod].faltantes['tb_esp'] !== undefined) {
-            dptosDatos[cod].faltantes['tb'] = dptosDatos[cod].faltantes['tb_esp'];
-            delete dptosDatos[cod].faltantes['tb_esp'];
-          }
-          if (dptosDatos[cod].faltantes['tb'] > 1) {
-            dptosDatos[cod].faltantes['tb'] = 1;
-          }
+      if (duplicados12.length > 1) {
+        // Renombrar la segunda clave a ac18
+        let segundaClave = duplicados12[1];
+        if (segundaClave !== 'ac12') {
+          deposito['ac18'] = deposito[segundaClave];
+          delete deposito[segundaClave];
         }
-      });
+      }
+      
       guardarDatos();
     }
 
-    consolidarTimbresEspeciales();
+    corregirDuplicadoAire18();
 
     let dptoSeleccionadoCod = null;
     let numDptoSeleccionado = null;
@@ -486,7 +491,7 @@
           if (m && m.cant > 0) {
             const falt = (datos.faltantes && datos.faltantes[m.id] !== undefined) ? datos.faltantes[m.id] : 0;
             if (falt > 0) {
-              let nomCorto = m.nombre ? m.nombre.replace('Redondo sobreponer cálido ', 'Sob. ').replace('Redondo embutir cálido ', 'Emb. ').replace('Aire Acondicionado ', 'Aire ').replace('Placa de ', 'Placa ') : 'Item';
+              let nomCorto = m.nombre ? m.nombre.replace('Redondo sobreponer cálido ', 'Sob. ').replace('Redondo embutir cálido ', 'Emb. ').replace('Aire de ', 'Aire ').replace('Placa de ', 'Placa ') : 'Item';
               faltantesArr.push(`${falt} ${nomCorto}`);
             }
           }
@@ -705,15 +710,15 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v16', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp_v16', JSON.stringify(materialesEsp));
+        localStorage.setItem('obra_dptos_datos_v16', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v16', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v15', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp_v15', JSON.stringify(materialesEsp));
         localStorage.setItem('obra_dptos_datos_v15', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v15', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v14', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp_v14', JSON.stringify(materialesEsp));
-        localStorage.setItem('obra_dptos_datos_v14', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v14', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
@@ -866,15 +871,33 @@
         if (!todosLosItems.find(s => s.id === e.id)) todosLosItems.push(e);
       });
 
+      // Incluir también elementos agregados manualmente al depósito
+      Object.keys(deposito).forEach(k => {
+        if (!todosLosItems.find(s => s.id === k)) {
+          todosLosItems.push({ id: k, nombre: k.replace('m_', 'Insumo Extra ') });
+        }
+      });
+
       todosLosItems.forEach(m => {
         const val = deposito[m.id] || 0;
         contDep.innerHTML += `
           <div class="flex justify-between items-center bg-gray-50 p-1.5 rounded border text-xs">
             <span class="font-medium text-gray-700 flex-1">${m.nombre}</span>
             <input type="number" id="dep-gest-${m.id}" value="${val}" min="0" class="w-16 p-1 border rounded text-center font-bold">
+            <button onclick="eliminarDelDeposito('${m.id}')" class="text-red-500 font-bold px-2 text-sm hover:bg-red-50 rounded">✕</button>
           </div>
         `;
       });
+    }
+
+    function eliminarDelDeposito(id) {
+      if (confirm('¿Querés eliminar este ítem del stock del depósito?')) {
+        delete deposito[id];
+        // Si además era un insumo adicional agregado, lo quitamos
+        materialesStd = materialesStd.filter(m => m.id !== id);
+        materialesEsp = materialesEsp.filter(m => m.id !== id);
+        guardarTodoGestion();
+      }
     }
 
     function agregarPlantilla(tipo) {
@@ -924,6 +947,7 @@
       });
 
       guardarDatos();
+      renderGestionMateriales();
       actualizarPorcentajeAvanceObra();
       alert('¡Todo guardado correctamente!');
     }
