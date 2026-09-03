@@ -353,7 +353,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v23`, `${prefijo}_v22`, `${prefijo}_v21`, `${prefijo}_v20`
+        `${prefijo}_v24`, `${prefijo}_v23`, `${prefijo}_v22`, `${prefijo}_v21`, `${prefijo}_v20`
       ];
       for (let c of claves) {
         try {
@@ -719,17 +719,17 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v24', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp1_v24', JSON.stringify(materialesEsp1));
+        localStorage.setItem('obra_mat_esp2_v24', JSON.stringify(materialesEsp2));
+        localStorage.setItem('obra_dptos_datos_v24', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v24', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v23', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp1_v23', JSON.stringify(materialesEsp1));
         localStorage.setItem('obra_mat_esp2_v23', JSON.stringify(materialesEsp2));
         localStorage.setItem('obra_dptos_datos_v23', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v23', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v22', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp1_v22', JSON.stringify(materialesEsp1));
-        localStorage.setItem('obra_mat_esp2_v22', JSON.stringify(materialesEsp2));
-        localStorage.setItem('obra_dptos_datos_v22', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v22', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
@@ -806,6 +806,7 @@
       navigator.clipboard.writeText(txt).then(() => alert('Lista copiada a portapapeles.'));
     }
 
+    // FUNCIÓN CORREGIDA Y BLINDADA DE DESCUENTO
     function confirmarSalidaSegunPlantilla() {
       const niv = document.getElementById('select-salida-nivel').value;
       const numDpto = parseInt(document.getElementById('select-salida-dpto').value);
@@ -818,11 +819,11 @@
       if (!confirm(`¿Confirmás la salida de materiales para el departamento ${cod}? Se descontará del Depósito y actualizará el departamento.`)) return;
 
       seleccionados.forEach(item => {
-        // 1. Descontar stock del Depósito
-        if (!deposito[item.id]) deposito[item.id] = 0;
-        deposito[item.id] = Math.max(0, deposito[item.id] - item.cantAEntregar);
+        // 1. Descontar stock directamente de Depósito
+        let stockActual = deposito[item.id] !== undefined ? deposito[item.id] : 0;
+        deposito[item.id] = Math.max(0, stockActual - item.cantAEntregar);
 
-        // 2. Actualizar faltante en el Departamento
+        // 2. Actualizar faltantes en el Departamento
         let listaMat = obtenerListaBaseParaDpto(numDpto);
         let matBase = listaMat.find(x => x.id === item.id);
         let reqTotal = matBase ? matBase.cant : item.cantMax;
@@ -838,10 +839,15 @@
         }
       });
 
+      // Guardar inmediatamente en localStorage
       guardarDatos();
+
+      // Refrescar vistas
       cargarPlantillaParaSalida();
+      renderGestionMateriales();
       actualizarPorcentajeAvanceObra();
       renderPlano();
+
       alert(`¡Materiales descontados de Depósito y Dpto ${cod} actualizado con éxito!`);
     }
 
