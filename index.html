@@ -146,11 +146,10 @@
       <div class="space-y-2 pt-2">
         <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl">
           <h3 class="font-bold text-sm text-amber-900 leading-tight">¿Qué le falta a este departamento?</h3>
-          <p class="text-[11px] text-amber-800 mt-0.5">Anotá manualmente las unidades faltantes observadas en la obra.</p>
+          <p class="text-[11px] text-amber-800 mt-0.5">Anotá las unidades faltantes observadas en la obra.</p>
         </div>
 
-        <div id="contenedor-reporte-faltantes" class="space-y-2 pt-1">
-        </div>
+        <div id="contenedor-reporte-faltantes" class="space-y-2 pt-1"></div>
       </div>
 
       <div class="pt-4 border-t sticky bottom-0 bg-white pb-4">
@@ -160,47 +159,43 @@
       </div>
     </div>
 
-    <!-- PESTAÑA 2: VISTA DE ENTREGAS Y SALIDA LIBRE DE MATERIALES -->
+    <!-- PESTAÑA 2: VISTA DE ENTREGAS BASADA EN PLANTILLA DE DPTO -->
     <section id="sec-entregas" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-base text-gray-800 mb-1">Salida Libre de Materiales</h2>
-        <p class="text-[11px] text-gray-500 mb-3">Registrá la entrega a los oficiales en lote sin bloqueos ni límites por departamento.</p>
+        <h2 class="font-bold text-base text-gray-800 mb-1">Armar Salida por Departamento</h2>
+        <p class="text-[11px] text-gray-500 mb-3">Elegí el departamento y la app te carga su plantilla guiada para que edites lo que entregás hoy.</p>
         
-        <div class="space-y-3 bg-gray-50 p-3 rounded-xl border border-gray-200">
+        <div class="grid grid-cols-2 gap-2 mb-3">
           <div>
-            <label class="text-xs font-bold text-gray-700 block mb-1">Seleccionar Insumo a Entregar:</label>
-            <select id="select-libre-mat" class="w-full p-2 border rounded text-xs bg-white font-bold text-gray-800"></select>
+            <label class="text-xs font-bold text-gray-700 block mb-1">Nivel / Piso:</label>
+            <select id="select-salida-nivel" onchange="cargarPlantillaParaSalida()" class="w-full p-2 border rounded text-xs bg-gray-50 font-bold text-blue-900">
+              <option value="A">Nivel 1 (A)</option>
+              <option value="B">Nivel 2 (B)</option>
+              <option value="C">Nivel 3 (C)</option>
+              <option value="D">Nivel 4 (D)</option>
+              <option value="E">Nivel 5 (E)</option>
+              <option value="F">Nivel 6 (F)</option>
+            </select>
           </div>
-
-          <div class="flex gap-2">
-            <div class="flex-1">
-              <label class="text-xs font-bold text-gray-700 block mb-1">Cantidad a Entregar:</label>
-              <input type="number" id="input-libre-cant" placeholder="Ej: 20" min="1" class="w-full p-2 border rounded text-xs font-bold bg-white text-blue-900 text-center">
-            </div>
-            <div class="flex-1">
-              <label class="text-xs font-bold text-gray-700 block mb-1">Referencia / Destino:</label>
-              <input type="text" id="input-libre-ref" placeholder="Ej: Piso 3 / 20 Dptos" class="w-full p-2 border rounded text-xs font-bold bg-white text-gray-800">
-            </div>
+          <div>
+            <label class="text-xs font-bold text-gray-700 block mb-1">Departamento:</label>
+            <select id="select-salida-dpto" onchange="cargarPlantillaParaSalida()" class="w-full p-2 border rounded text-xs bg-gray-50 font-bold text-blue-900"></select>
           </div>
-
-          <button onclick="agregarAEntregaLibre()" class="w-full bg-blue-700 text-white py-2 rounded-lg font-bold text-xs hover:bg-blue-800 shadow">
-            + Agregar a la Lista de Salida
-          </button>
         </div>
 
-        <!-- LISTA TEMPORAL DE SALIDA -->
-        <div class="mt-4 border-t pt-3">
-          <h3 class="font-bold text-xs text-gray-700 mb-2">Materiales a Salir del Depósito:</h3>
-          <div id="contenedor-lista-salida" class="space-y-1.5">
-            <p class="text-xs text-gray-400 italic text-center py-2">No agregaste insumos a la lista de salida.</p>
-          </div>
+        <div id="badge-tipo-dpto-salida" class="p-2 mb-3 rounded-lg bg-blue-50 border border-blue-200 text-xs font-bold text-blue-900 text-center"></div>
+
+        <!-- LISTA INTERACTIVA BASADA EN PLANTILLA -->
+        <div class="border-t pt-3 space-y-2">
+          <h3 class="font-bold text-xs text-gray-700">Ajustá lo que le entregás hoy:</h3>
+          <div id="contenedor-plantilla-salida" class="space-y-2 max-h-[45vh] overflow-y-auto pr-1"></div>
         </div>
 
         <div class="grid grid-cols-2 gap-2 mt-4">
-          <button onclick="copiarSalidaWhatsApp()" class="bg-emerald-700 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-emerald-800 shadow">
-            📋 Copiar Remito
+          <button onclick="copiarSalidaGuiaWhatsApp()" class="bg-emerald-700 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-emerald-800 shadow">
+            📋 Copiar Lista
           </button>
-          <button onclick="confirmarSalidaMateriales()" class="bg-blue-900 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-blue-950 shadow">
+          <button onclick="confirmarSalidaSegunPlantilla()" class="bg-blue-900 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-blue-950 shadow">
             📦 Descontar de Depósito
           </button>
         </div>
@@ -280,6 +275,8 @@
   <script>
     const NIVELES = ['A', 'B', 'C', 'D', 'E', 'F'];
     const DPTOS_NUM = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
+    const ESPECIALES_TIPO1 = [1, 8]; // 2 Aire 12K + 1 Aire 18K
+    const ESPECIALES_TIPO2 = [9, 16]; // 3 Aire 12K
     const ESPECIALES = [1, 8, 9, 16];
 
     const plantillaBaseInicialStd = [
@@ -323,7 +320,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v20`, `${prefijo}_v19`, `${prefijo}_v18`, `${prefijo}_v17`, `${prefijo}_v16`
+        `${prefijo}_v21`, `${prefijo}_v20`, `${prefijo}_v19`, `${prefijo}_v18`
       ];
       for (let c of claves) {
         try {
@@ -346,11 +343,11 @@
 
     let dptoSeleccionadoCod = null;
     let numDptoSeleccionado = null;
-    let listaSalidaTemporal = [];
+    let itemsSalidaGuiada = [];
 
     function init() {
       renderPlano();
-      poblarSelectEntregaLibre();
+      poblarSelectsSalida();
       renderGestionMateriales();
       actualizarPorcentajeAvanceObra();
     }
@@ -365,7 +362,7 @@
       document.getElementById(`sec-${tab}`).classList.remove('hidden');
       document.getElementById(`tab${map[tab]}`).classList.add('tab-active');
 
-      if (tab === 'entregas') poblarSelectEntregaLibre();
+      if (tab === 'entregas') cargarPlantillaParaSalida();
       if (tab === 'pedidos') calcularPedidoGlobal();
       if (tab === 'materiales') renderGestionMateriales();
     }
@@ -375,12 +372,12 @@
 
       let listaMod = JSON.parse(JSON.stringify(materialesEsp));
       
-      if (num === 1 || num === 8) {
+      if (ESPECIALES_TIPO1.includes(num)) {
         let ac12 = listaMod.find(m => m.nombre.toLowerCase().includes('12.000'));
         let ac18 = listaMod.find(m => m.nombre.toLowerCase().includes('18.000'));
         if (ac12) ac12.cant = 2;
         if (ac18) ac18.cant = 1;
-      } else if (num === 9 || num === 16) {
+      } else if (ESPECIALES_TIPO2.includes(num)) {
         let ac12 = listaMod.find(m => m.nombre.toLowerCase().includes('12.000'));
         let ac18 = listaMod.find(m => m.nombre.toLowerCase().includes('18.000'));
         if (ac12) ac12.cant = 3;
@@ -554,8 +551,8 @@
       const datos = obtenerDatosDpto(codigo);
 
       let desc = 'Estándar (2 Aires 12K)';
-      if (num === 1 || num === 8) desc = 'Especial (2 Aires 12K + 1 Aire 18K)';
-      else if (num === 9 || num === 16) desc = 'Especial (3 Aires 12K)';
+      if (ESPECIALES_TIPO1.includes(num)) desc = 'Especial Tipo 1 (2 Aires 12K + 1 Aire 18K)';
+      else if (ESPECIALES_TIPO2.includes(num)) desc = 'Especial Tipo 2 (3 Aires 12K)';
 
       document.getElementById('pantalla-titulo').innerText = `Departamento ${codigo}`;
       document.getElementById('pantalla-subtitulo').innerText = desc;
@@ -701,112 +698,129 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v21', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp_v21', JSON.stringify(materialesEsp));
+        localStorage.setItem('obra_dptos_datos_v21', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v21', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v20', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp_v20', JSON.stringify(materialesEsp));
         localStorage.setItem('obra_dptos_datos_v20', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v20', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v19', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp_v19', JSON.stringify(materialesEsp));
-        localStorage.setItem('obra_dptos_datos_v19', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v19', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
     }
 
-    // POBLE SELECT DE MATERIALES PARA LA SALIDA LIBRE
-    function poblarSelectEntregaLibre() {
-      const sel = document.getElementById('select-libre-mat');
-      sel.innerHTML = '';
-      
-      let todos = [...materialesStd];
-      materialesEsp.forEach(e => {
-        if (!todos.find(s => s.id === e.id)) todos.push(e);
+    // POBLE SELECTS DE SALIDA GUIADA POR DPTO
+    function poblarSelectsSalida() {
+      const selDpto = document.getElementById('select-salida-dpto');
+      selDpto.innerHTML = '';
+      DPTOS_NUM.forEach(n => {
+        let tag = 'Estándar';
+        if (ESPECIALES_TIPO1.includes(n)) tag = 'Especial 1 (2x12K + 1x18K)';
+        if (ESPECIALES_TIPO2.includes(n)) tag = 'Especial 2 (3x12K)';
+        selDpto.innerHTML += `<option value="${n}">Dpto ${n} (${tag})</option>`;
       });
+    }
 
-      Object.keys(deposito).forEach(k => {
-        if (!todos.find(s => s.id === k)) {
-          todos.push({ id: k, nombre: k.replace('m_', 'Insumo Extra ') });
+    function cargarPlantillaParaSalida() {
+      const niv = document.getElementById('select-salida-nivel').value;
+      const numDpto = parseInt(document.getElementById('select-salida-dpto').value);
+      const cod = `${niv}${numDpto}`;
+      const datos = obtenerDatosDpto(cod);
+      const listaMat = obtenerListaBaseParaDpto(numDpto);
+
+      const badge = document.getElementById('badge-tipo-dpto-salida');
+      let desc = 'DPTO ESTÁNDAR (2 Aires 12.000btu)';
+      if (ESPECIALES_TIPO1.includes(numDpto)) desc = 'DPTO ESPECIAL TIPO 1 (2 Aires 12.000btu + 1 Aire 18.000btu)';
+      if (ESPECIALES_TIPO2.includes(numDpto)) desc = 'DPTO ESPECIAL TIPO 2 (3 Aires 12.000btu)';
+      
+      badge.innerText = `${cod} - ${desc}`;
+
+      const cont = document.getElementById('contenedor-plantilla-salida');
+      cont.innerHTML = '';
+      itemsSalidaGuiada = [];
+
+      listaMat.forEach((m, idx) => {
+        if (m && m.cant > 0) {
+          const faltAct = (datos.faltantes && datos.faltantes[m.id] !== undefined) ? datos.faltantes[m.id] : m.cant;
+          const stockDep = deposito[m.id] || 0;
+
+          itemsSalidaGuiada.push({
+            id: m.id,
+            nombre: m.nombre,
+            cantAEntregar: faltAct,
+            cantMax: m.cant,
+            activo: true
+          });
+
+          cont.innerHTML += `
+            <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-xl border border-gray-200 text-xs shadow-sm">
+              <input type="checkbox" id="chk-sal-${idx}" checked onchange="itemsSalidaGuiada[${idx}].activo = this.checked; document.getElementById('inp-sal-${idx}').disabled = !this.checked;" class="w-4 h-4 text-blue-600 rounded">
+              <div class="flex-1 min-w-0">
+                <span class="font-bold text-gray-800 block truncate">${m.nombre}</span>
+                <span class="text-[10px] text-gray-500">Total Dpto: ${m.cant} | Stock Depósito: ${stockDep}</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] text-gray-600 font-bold">Dar Hoy:</span>
+                <input type="number" id="inp-sal-${idx}" value="${faltAct}" min="0" onfocus="this.select()" onchange="itemsSalidaGuiada[${idx}].cantAEntregar = parseInt(this.value)||0" class="w-14 p-1 border-2 border-blue-400 rounded text-center font-extrabold bg-white text-blue-900">
+              </div>
+            </div>
+          `;
+        }
+      });
+    }
+
+    function copiarSalidaGuiaWhatsApp() {
+      const niv = document.getElementById('select-salida-nivel').value;
+      const numDpto = document.getElementById('select-salida-dpto').value;
+      let seleccionados = itemsSalidaGuiada.filter(i => i.activo && i.cantAEntregar > 0);
+      
+      if (seleccionados.length === 0) return alert('No seleccionaste ningún insumo para entregar.');
+      
+      let txt = `*REMITO SALIDA MATERIALES - DPTO ${niv}${numDpto}*\n-----------------------------------\n`;
+      seleccionados.forEach(i => txt += `• ${i.nombre}: *${i.cantAEntregar} un.*\n`);
+      navigator.clipboard.writeText(txt).then(() => alert('Lista copiada a portapapeles.'));
+    }
+
+    function confirmarSalidaSegunPlantilla() {
+      const niv = document.getElementById('select-salida-nivel').value;
+      const numDpto = parseInt(document.getElementById('select-salida-dpto').value);
+      const cod = `${niv}${numDpto}`;
+      const datos = obtenerDatosDpto(cod);
+
+      let seleccionados = itemsSalidaGuiada.filter(i => i.activo && i.cantAEntregar > 0);
+      if (seleccionados.length === 0) return alert('No seleccionaste ningún insumo para entregar.');
+
+      if (!confirm(`¿Confirmás la salida de materiales para el departamento ${cod}? Se descontará del Depósito y actualizará el departamento.`)) return;
+
+      seleccionados.forEach(item => {
+        // 1. Descontar stock del Depósito
+        if (!deposito[item.id]) deposito[item.id] = 0;
+        deposito[item.id] = Math.max(0, deposito[item.id] - item.cantAEntregar);
+
+        // 2. Actualizar faltante en el Departamento
+        let listaMat = obtenerListaBaseParaDpto(numDpto);
+        let matBase = listaMat.find(x => x.id === item.id);
+        let reqTotal = matBase ? matBase.cant : item.cantMax;
+
+        let faltanteAnterior = (datos.faltantes && datos.faltantes[item.id] !== undefined) ? datos.faltantes[item.id] : reqTotal;
+        let nuevoFaltante = Math.max(0, faltanteAnterior - item.cantAEntregar);
+
+        if (!datos.faltantes) datos.faltantes = {};
+        if (nuevoFaltante <= 0) {
+          delete datos.faltantes[item.id];
+        } else {
+          datos.faltantes[item.id] = nuevoFaltante;
         }
       });
 
-      todos.forEach(m => {
-        const stockDep = deposito[m.id] || 0;
-        sel.innerHTML += `<option value="${m.id}">${m.nombre} (Stock Depósito: ${stockDep})</option>`;
-      });
-    }
-
-    function agregarAEntregaLibre() {
-      const sel = document.getElementById('select-libre-mat');
-      const matId = sel.value;
-      const cant = parseInt(document.getElementById('input-libre-cant').value) || 0;
-      const ref = document.getElementById('input-libre-ref').value || 'Sin ref';
-
-      if (!matId || cant <= 0) return alert('Por favor ingresá una cantidad válida mayor a 0.');
-
-      let todos = [...materialesStd, ...materialesEsp];
-      let mat = todos.find(m => m.id === matId) || { id: matId, nombre: 'Insumo' };
-
-      listaSalidaTemporal.push({
-        id: mat.id,
-        nombre: mat.nombre,
-        cant: cant,
-        ref: ref
-      });
-
-      document.getElementById('input-libre-cant').value = '';
-      renderListaSalidaTemporal();
-    }
-
-    function renderListaSalidaTemporal() {
-      const cont = document.getElementById('contenedor-lista-salida');
-      cont.innerHTML = '';
-
-      if (listaSalidaTemporal.length === 0) {
-        cont.innerHTML = '<p class="text-xs text-gray-400 italic text-center py-2">No agregaste insumos a la lista de salida.</p>';
-        return;
-      }
-
-      listaSalidaTemporal.forEach((item, idx) => {
-        cont.innerHTML += `
-          <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg border text-xs">
-            <div>
-              <span class="font-bold text-gray-800">${item.nombre}</span>
-              <span class="text-[10px] text-gray-500 block">Destino: ${item.ref}</span>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="font-extrabold text-blue-900 text-sm">${item.cant} un.</span>
-              <button onclick="listaSalidaTemporal.splice(${idx},1); renderListaSalidaTemporal();" class="text-red-500 font-bold px-1">✕</button>
-            </div>
-          </div>
-        `;
-      });
-    }
-
-    function copiarSalidaWhatsApp() {
-      if (listaSalidaTemporal.length === 0) return alert('La lista de salida está vacía.');
-      
-      let txt = "*REMITO DE SALIDA DE MATERIALES*\n-----------------------------------\n";
-      listaSalidaTemporal.forEach(i => txt += `• ${i.nombre}: *${i.cant} un.* (${i.ref})\n`);
-      navigator.clipboard.writeText(txt).then(() => alert('Remito copiado a portapapeles.'));
-    }
-
-    function confirmarSalidaMateriales() {
-      if (listaSalidaTemporal.length === 0) return alert('La lista de salida está vacía.');
-
-      if (!confirm('¿Querés descontar estos materiales del depósito?')) return;
-
-      listaSalidaTemporal.forEach(item => {
-        if (!deposito[item.id]) deposito[item.id] = 0;
-        deposito[item.id] = Math.max(0, deposito[item.id] - item.cant);
-      });
-
       guardarDatos();
-      listaSalidaTemporal = [];
-      renderListaSalidaTemporal();
-      poblarSelectEntregaLibre();
-      alert('¡Materiales descontados del depósito correctamente!');
+      cargarPlantillaParaSalida();
+      actualizarPorcentajeAvanceObra();
+      renderPlano();
+      alert(`¡Materiales descontados de Depósito y Dpto ${cod} actualizado con éxito!`);
     }
 
     let listaPedidoCompraCalculada = [];
