@@ -217,14 +217,14 @@
       </div>
     </section>
 
-    <!-- PESTAÑA 4: PEDIDO TEÓRICO COMPLETO POR PISO (100% BRUTO) -->
+    <!-- PESTAÑA 4: PEDIDO TEÓRICO EDITABLE POR PISO (100% BRUTO EDITABLE) -->
     <section id="sec-pedidopiso" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-blue-200">
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xl">📦</span>
           <div>
-            <h2 class="font-bold text-base text-blue-950 leading-tight">Proyección de Pedido por Piso</h2>
-            <p class="text-[11px] text-gray-500">Calcula el 100% teórico de materiales para un piso completo desde cero (Sin descontar Depósito).</p>
+            <h2 class="font-bold text-base text-blue-950 leading-tight">Proyección de Pedido por Piso (Editable)</h2>
+            <p class="text-[11px] text-gray-500">Ajustá libremente la cantidad a pedir por insumo según lo que ya tengas en stock.</p>
           </div>
         </div>
 
@@ -243,7 +243,7 @@
         <div id="resumen-pedidopiso-teorico" class="space-y-1.5 border-t pt-3 max-h-[50vh] overflow-y-auto pr-1"></div>
 
         <button onclick="copiarPedidoPisoWhatsApp()" class="w-full mt-4 bg-blue-900 text-white py-3 rounded-xl font-bold text-xs hover:bg-blue-950 shadow-md flex items-center justify-center gap-2">
-          <span>📋</span> Copiar Pedido Piso Completo para Proveedor
+          <span>📋</span> Copiar Pedido Ajustado para Proveedor
         </button>
       </div>
     </section>
@@ -374,7 +374,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v26`, `${prefijo}_v25`, `${prefijo}_v24`, `${prefijo}_v23`
+        `${prefijo}_v27`, `${prefijo}_v26`, `${prefijo}_v25`, `${prefijo}_v24`
       ];
       for (let c of claves) {
         try {
@@ -399,6 +399,7 @@
     let dptoSeleccionadoCod = null;
     let numDptoSeleccionado = null;
     let itemsSalidaGuiada = [];
+    let listaPedidoPisoTeoricoCalculada = [];
 
     function init() {
       renderPlano();
@@ -744,17 +745,17 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v27', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp1_v27', JSON.stringify(materialesEsp1));
+        localStorage.setItem('obra_mat_esp2_v27', JSON.stringify(materialesEsp2));
+        localStorage.setItem('obra_dptos_datos_v27', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v27', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v26', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp1_v26', JSON.stringify(materialesEsp1));
         localStorage.setItem('obra_mat_esp2_v26', JSON.stringify(materialesEsp2));
         localStorage.setItem('obra_dptos_datos_v26', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v26', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v25', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp1_v25', JSON.stringify(materialesEsp1));
-        localStorage.setItem('obra_mat_esp2_v25', JSON.stringify(materialesEsp2));
-        localStorage.setItem('obra_dptos_datos_v25', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v25', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
@@ -892,12 +893,9 @@
       navigator.clipboard.writeText(txt).then(() => alert('Pedido copiado.'));
     }
 
-    // LÓGICA PEDIDO TEÓRICO COMPLETO POR PISO (100% BRUTO - SIN DEPOSITO)
-    let listaPedidoPisoTeoricoCalculada = [];
-
+    // LÓGICA PEDIDO TEÓRICO COMPLETO EDITABLE POR PISO
     function calcularPedidoPisoTeorico() {
       const selectPiso = document.getElementById('select-pedidopiso-nivel');
-      const textoPiso = selectPiso.options[selectPiso.selectedIndex].text;
       const cont = document.getElementById('resumen-pedidopiso-teorico');
       cont.innerHTML = '';
       listaPedidoPisoTeoricoCalculada = [];
@@ -916,6 +914,7 @@
         });
       });
 
+      let idx = 0;
       Object.keys(acumuladoTeorico).forEach(nombreKey => {
         const cantTotal = acumuladoTeorico[nombreKey];
         if (cantTotal > 0) {
@@ -925,13 +924,15 @@
             <div class="flex justify-between items-center p-2 bg-blue-50/50 border border-blue-100 rounded text-xs shadow-sm">
               <div>
                 <p class="font-bold text-gray-800">${nombreKey}</p>
-                <p class="text-[10px] text-gray-500">Cálculo para 16 dptos completos</p>
+                <p class="text-[10px] text-gray-500">Sugerido teo: ${cantTotal} un.</p>
               </div>
-              <span class="font-black text-xs text-blue-900 bg-blue-100 px-2.5 py-1 rounded-lg">
-                ${cantTotal} un.
-              </span>
+              <div class="flex items-center gap-1">
+                <span class="text-[10px] text-blue-900 font-bold">Pedir:</span>
+                <input type="number" value="${cantTotal}" min="0" onfocus="this.select()" onchange="listaPedidoPisoTeoricoCalculada[${idx}].cant = parseInt(this.value)||0" class="w-16 p-1 border-2 border-blue-400 rounded-lg text-center font-black text-sm bg-white text-blue-900">
+              </div>
             </div>
           `;
+          idx++;
         }
       });
     }
@@ -940,10 +941,12 @@
       const selectPiso = document.getElementById('select-pedidopiso-nivel');
       const textoPiso = selectPiso.options[selectPiso.selectedIndex].text;
 
-      if (listaPedidoPisoTeoricoCalculada.length === 0) return alert('No hay datos para copiar.');
+      let seleccionados = listaPedidoPisoTeoricoCalculada.filter(i => i.cant > 0);
 
-      let txt = `*PEDIDO COMPLETO TEÓRICO DE MATERIALES*\n📌 *${textoPiso}*\n-----------------------------------\n`;
-      listaPedidoPisoTeoricoCalculada.forEach(i => txt += `• ${i.nombre}: *${i.cant} un.*\n`);
+      if (seleccionados.length === 0) return alert('No hay insumos con cantidad mayor a 0 para copiar.');
+
+      let txt = `*PEDIDO EDITADO DE MATERIALES*\n📌 *${textoPiso}*\n-----------------------------------\n`;
+      seleccionados.forEach(i => txt += `• ${i.nombre}: *${i.cant} un.*\n`);
       
       navigator.clipboard.writeText(txt).then(() => alert(`¡Pedido del ${textoPiso} copiado al portapapeles!`));
     }
