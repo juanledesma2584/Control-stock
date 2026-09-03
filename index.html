@@ -36,7 +36,7 @@
   <!-- Navegación -->
   <nav class="bg-white shadow flex justify-around border-b border-gray-200 text-xs font-medium sticky top-[66px] z-20">
     <button id="tab1" onclick="switchTab('plano')" class="py-3 px-1 tab-active flex-1 text-center">Plano / Dptos</button>
-    <button id="tab2" onclick="switchTab('entregas')" class="py-3 px-1 flex-1 text-center">Vista Entregas</button>
+    <button id="tab2" onclick="switchTab('entregas')" class="py-3 px-1 flex-1 text-center">Salida Materiales</button>
     <button id="tab3" onclick="switchTab('pedidos')" class="py-3 px-1 flex-1 text-center">Pedidos / Faltantes</button>
     <button id="tab4" onclick="switchTab('materiales')" class="py-3 px-1 flex-1 text-center">Gestión Materiales</button>
   </nav>
@@ -146,7 +146,7 @@
       <div class="space-y-2 pt-2">
         <div class="bg-amber-50 border border-amber-200 p-3 rounded-xl">
           <h3 class="font-bold text-sm text-amber-900 leading-tight">¿Qué le falta a este departamento?</h3>
-          <p class="text-[11px] text-amber-800 mt-0.5">Ingresá la cantidad de unidades que faltan instalar. Si no falta nada, dejá en 0.</p>
+          <p class="text-[11px] text-amber-800 mt-0.5">Anotá manualmente las unidades faltantes observadas en la obra.</p>
         </div>
 
         <div id="contenedor-reporte-faltantes" class="space-y-2 pt-1">
@@ -160,34 +160,48 @@
       </div>
     </div>
 
-    <!-- PESTAÑA 2: VISTA DE ENTREGAS Y CONTROL DE STOCK -->
+    <!-- PESTAÑA 2: VISTA DE ENTREGAS Y SALIDA LIBRE DE MATERIALES -->
     <section id="sec-entregas" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-base text-gray-800 mb-1">Armar Entrega de Materiales</h2>
-        <p class="text-[11px] text-gray-500 mb-3">Ajustá las cantidades reales a entregar y descontá del depósito directamente.</p>
+        <h2 class="font-bold text-base text-gray-800 mb-1">Salida Libre de Materiales</h2>
+        <p class="text-[11px] text-gray-500 mb-3">Registrá la entrega a los oficiales en lote sin bloqueos ni límites por departamento.</p>
         
-        <div class="flex gap-2 mb-4">
-          <select id="select-entrega-nivel" onchange="calcularVistaEntrega()" class="p-2 border rounded text-xs bg-gray-50 font-bold flex-1">
-            <option value="A">Nivel 1 (A)</option>
-            <option value="B">Nivel 2 (B)</option>
-            <option value="C">Nivel 3 (C)</option>
-            <option value="D">Nivel 4 (D)</option>
-            <option value="E">Nivel 5 (E)</option>
-            <option value="F">Nivel 6 (F)</option>
-          </select>
-          <select id="select-entrega-dpto" onchange="calcularVistaEntrega()" class="p-2 border rounded text-xs bg-gray-50 font-bold flex-1">
-            <option value="TODOS">Todo el Piso</option>
-          </select>
+        <div class="space-y-3 bg-gray-50 p-3 rounded-xl border border-gray-200">
+          <div>
+            <label class="text-xs font-bold text-gray-700 block mb-1">Seleccionar Insumo a Entregar:</label>
+            <select id="select-libre-mat" class="w-full p-2 border rounded text-xs bg-white font-bold text-gray-800"></select>
+          </div>
+
+          <div class="flex gap-2">
+            <div class="flex-1">
+              <label class="text-xs font-bold text-gray-700 block mb-1">Cantidad a Entregar:</label>
+              <input type="number" id="input-libre-cant" placeholder="Ej: 20" min="1" class="w-full p-2 border rounded text-xs font-bold bg-white text-blue-900 text-center">
+            </div>
+            <div class="flex-1">
+              <label class="text-xs font-bold text-gray-700 block mb-1">Referencia / Destino:</label>
+              <input type="text" id="input-libre-ref" placeholder="Ej: Piso 3 / 20 Dptos" class="w-full p-2 border rounded text-xs font-bold bg-white text-gray-800">
+            </div>
+          </div>
+
+          <button onclick="agregarAEntregaLibre()" class="w-full bg-blue-700 text-white py-2 rounded-lg font-bold text-xs hover:bg-blue-800 shadow">
+            + Agregar a la Lista de Salida
+          </button>
         </div>
 
-        <div id="resumen-vista-entrega" class="space-y-2 border-t pt-3"></div>
+        <!-- LISTA TEMPORAL DE SALIDA -->
+        <div class="mt-4 border-t pt-3">
+          <h3 class="font-bold text-xs text-gray-700 mb-2">Materiales a Salir del Depósito:</h3>
+          <div id="contenedor-lista-salida" class="space-y-1.5">
+            <p class="text-xs text-gray-400 italic text-center py-2">No agregaste insumos a la lista de salida.</p>
+          </div>
+        </div>
 
         <div class="grid grid-cols-2 gap-2 mt-4">
-          <button onclick="copiarListaEntregaWhatsApp()" class="bg-emerald-700 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-emerald-800 shadow">
-            📋 Copiar Lista
+          <button onclick="copiarSalidaWhatsApp()" class="bg-emerald-700 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-emerald-800 shadow">
+            📋 Copiar Remito
           </button>
-          <button onclick="confirmarYEntregarMateriales()" class="bg-blue-800 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-blue-900 shadow">
-            📦 Entregar y Descontar
+          <button onclick="confirmarSalidaMateriales()" class="bg-blue-900 text-white py-2.5 rounded-lg font-bold text-xs hover:bg-blue-950 shadow">
+            📦 Descontar de Depósito
           </button>
         </div>
       </div>
@@ -222,7 +236,7 @@
     <section id="sec-materiales" class="hidden space-y-4">
       
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-base text-gray-800 mb-1">1. Plantilla Estándar (12 Dptos x Piso)</h2>
+        <h2 class="font-bold text-base text-gray-800 mb-1">1. Plantilla Estándar Referencial</h2>
         <div id="lista-plantilla-std" class="space-y-1.5 max-h-[30vh] overflow-y-auto pr-1"></div>
         <div class="mt-3 pt-2 border-t flex gap-2">
           <input type="text" id="nuevo-mat-std-nombre" placeholder="Nuevo Insumo Estándar" class="p-1.5 border rounded text-xs flex-1">
@@ -232,7 +246,7 @@
       </div>
 
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-base text-blue-900 mb-1">2. Plantilla Especial Base (A1, A8, A9, A16)</h2>
+        <h2 class="font-bold text-base text-blue-900 mb-1">2. Plantilla Especial Referencial</h2>
         <div id="lista-plantilla-esp" class="space-y-1.5 max-h-[30vh] overflow-y-auto pr-1"></div>
         <div class="mt-3 pt-2 border-t flex gap-2">
           <input type="text" id="nuevo-mat-esp-nombre" placeholder="Nuevo Insumo Especial" class="p-1.5 border rounded text-xs flex-1">
@@ -309,7 +323,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v19`, `${prefijo}_v18`, `${prefijo}_v17`, `${prefijo}_v16`, `${prefijo}_v15`
+        `${prefijo}_v20`, `${prefijo}_v19`, `${prefijo}_v18`, `${prefijo}_v17`, `${prefijo}_v16`
       ];
       for (let c of claves) {
         try {
@@ -332,10 +346,11 @@
 
     let dptoSeleccionadoCod = null;
     let numDptoSeleccionado = null;
+    let listaSalidaTemporal = [];
 
     function init() {
       renderPlano();
-      poblarSelectEntregaDptos();
+      poblarSelectEntregaLibre();
       renderGestionMateriales();
       actualizarPorcentajeAvanceObra();
     }
@@ -350,7 +365,7 @@
       document.getElementById(`sec-${tab}`).classList.remove('hidden');
       document.getElementById(`tab${map[tab]}`).classList.add('tab-active');
 
-      if (tab === 'entregas') calcularVistaEntrega();
+      if (tab === 'entregas') poblarSelectEntregaLibre();
       if (tab === 'pedidos') calcularPedidoGlobal();
       if (tab === 'materiales') renderGestionMateriales();
     }
@@ -645,11 +660,11 @@
             <div class="${falt > 0 ? 'bg-red-50 border-red-300' : 'bg-white border-gray-200'} p-3 rounded-xl border flex justify-between items-center text-xs shadow-sm">
               <div class="flex-1 pr-2">
                 <span class="font-bold text-gray-800 block text-xs mb-0.5">${m.nombre}</span>
-                <span class="text-[10px] text-gray-500 font-semibold">Total del Dpto: ${req} un.</span>
+                <span class="text-[10px] text-gray-500 font-semibold">Referencia Dpto: ${req} un.</span>
               </div>
               <div class="flex items-center gap-2">
                 <span class="text-[11px] font-bold ${falt > 0 ? 'text-red-700' : 'text-gray-600'}">Faltan:</span>
-                <input type="number" value="${falt}" min="0" max="${req}" onfocus="this.select()" onchange="actualizarFaltanteInsumo('${codigo}', '${m.id}', this.value)" class="w-16 p-1.5 border-2 rounded-lg text-center font-black text-sm ${falt > 0 ? 'bg-red-100 border-red-400 text-red-900' : 'bg-gray-50 border-gray-300 text-gray-800'}">
+                <input type="number" value="${falt}" min="0" onfocus="this.select()" onchange="actualizarFaltanteInsumo('${codigo}', '${m.id}', this.value)" class="w-16 p-1.5 border-2 rounded-lg text-center font-black text-sm ${falt > 0 ? 'bg-red-100 border-red-400 text-red-900' : 'bg-gray-50 border-gray-300 text-gray-800'}">
               </div>
             </div>
           `;
@@ -686,158 +701,112 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v20', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp_v20', JSON.stringify(materialesEsp));
+        localStorage.setItem('obra_dptos_datos_v20', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v20', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v19', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp_v19', JSON.stringify(materialesEsp));
         localStorage.setItem('obra_dptos_datos_v19', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v19', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v18', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp_v18', JSON.stringify(materialesEsp));
-        localStorage.setItem('obra_dptos_datos_v18', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v18', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
     }
 
-    function poblarSelectEntregaDptos() {
-      const sel = document.getElementById('select-entrega-dpto');
-      sel.innerHTML = '<option value="TODOS">Todo el Piso</option>';
-      DPTOS_NUM.forEach(n => sel.innerHTML += `<option value="${n}">Solo Dpto ${n}</option>`);
-    }
-
-    // NUEVA VISTA DE ENTREGAS DINÁMICA CON EDITABILIDAD Y DESCUENTO DE DEPÓSITO
-    let estadoActualEntrega = [];
-
-    function calcularVistaEntrega() {
-      const niv = document.getElementById('select-entrega-nivel').value;
-      const dptoFiltro = document.getElementById('select-entrega-dpto').value;
-      const cont = document.getElementById('resumen-vista-entrega');
-      cont.innerHTML = '';
-      estadoActualEntrega = [];
-
-      let acumulado = {};
-      const dptosAProcesar = dptoFiltro === 'TODOS' ? DPTOS_NUM : [parseInt(dptoFiltro)];
-
-      dptosAProcesar.forEach(num => {
-        const cod = `${niv}${num}`;
-        const datos = obtenerDatosDpto(cod);
-        const listaMat = obtenerListaBaseParaDpto(num);
-
-        listaMat.forEach(m => {
-          if (m && m.cant > 0) {
-            const falt = (datos.faltantes && datos.faltantes[m.id] !== undefined) ? datos.faltantes[m.id] : 0;
-            if (falt > 0) {
-              if (!acumulado[m.id]) {
-                acumulado[m.id] = { id: m.id, nombre: m.nombre, cantMax: 0 };
-              }
-              acumulado[m.id].cantMax += falt;
-            }
-          }
-        });
+    // POBLE SELECT DE MATERIALES PARA LA SALIDA LIBRE
+    function poblarSelectEntregaLibre() {
+      const sel = document.getElementById('select-libre-mat');
+      sel.innerHTML = '';
+      
+      let todos = [...materialesStd];
+      materialesEsp.forEach(e => {
+        if (!todos.find(s => s.id === e.id)) todos.push(e);
       });
 
-      let keys = Object.keys(acumulado);
+      Object.keys(deposito).forEach(k => {
+        if (!todos.find(s => s.id === k)) {
+          todos.push({ id: k, nombre: k.replace('m_', 'Insumo Extra ') });
+        }
+      });
 
-      if (keys.length === 0) {
-        cont.innerHTML = '<p class="text-xs text-green-600 font-bold p-3 bg-green-50 rounded-lg text-center">¡Sin entregas pendientes para esta selección!</p>';
+      todos.forEach(m => {
+        const stockDep = deposito[m.id] || 0;
+        sel.innerHTML += `<option value="${m.id}">${m.nombre} (Stock Depósito: ${stockDep})</option>`;
+      });
+    }
+
+    function agregarAEntregaLibre() {
+      const sel = document.getElementById('select-libre-mat');
+      const matId = sel.value;
+      const cant = parseInt(document.getElementById('input-libre-cant').value) || 0;
+      const ref = document.getElementById('input-libre-ref').value || 'Sin ref';
+
+      if (!matId || cant <= 0) return alert('Por favor ingresá una cantidad válida mayor a 0.');
+
+      let todos = [...materialesStd, ...materialesEsp];
+      let mat = todos.find(m => m.id === matId) || { id: matId, nombre: 'Insumo' };
+
+      listaSalidaTemporal.push({
+        id: mat.id,
+        nombre: mat.nombre,
+        cant: cant,
+        ref: ref
+      });
+
+      document.getElementById('input-libre-cant').value = '';
+      renderListaSalidaTemporal();
+    }
+
+    function renderListaSalidaTemporal() {
+      const cont = document.getElementById('contenedor-lista-salida');
+      cont.innerHTML = '';
+
+      if (listaSalidaTemporal.length === 0) {
+        cont.innerHTML = '<p class="text-xs text-gray-400 italic text-center py-2">No agregaste insumos a la lista de salida.</p>';
         return;
       }
 
-      keys.forEach((id, idx) => {
-        const item = acumulado[id];
-        const stockDep = deposito[item.id] || 0;
-
-        estadoActualEntrega.push({
-          id: item.id,
-          nombre: item.nombre,
-          cantAEntregar: item.cantMax,
-          cantMax: item.cantMax,
-          activo: true
-        });
-
+      listaSalidaTemporal.forEach((item, idx) => {
         cont.innerHTML += `
-          <div class="flex items-center gap-2 bg-gray-50 p-2 rounded-xl border border-gray-200 text-xs shadow-sm">
-            <input type="checkbox" id="chk-ent-${idx}" checked onchange="toggleEntregaItem(${idx}, this.checked)" class="w-4 h-4 text-blue-600 rounded">
-            <div class="flex-1 min-w-0">
-              <span class="font-bold text-gray-800 block truncate">${item.nombre}</span>
-              <span class="text-[10px] text-gray-500">Pendiente: ${item.cantMax} un. | Stock Depósito: ${stockDep}</span>
+          <div class="flex justify-between items-center bg-gray-50 p-2 rounded-lg border text-xs">
+            <div>
+              <span class="font-bold text-gray-800">${item.nombre}</span>
+              <span class="text-[10px] text-gray-500 block">Destino: ${item.ref}</span>
             </div>
-            <div class="flex items-center gap-1">
-              <span class="text-[10px] text-gray-600 font-bold">A Entregar:</span>
-              <input type="number" id="input-ent-${idx}" value="${item.cantMax}" min="1" max="${item.cantMax}" onfocus="this.select()" onchange="actualizarCantEntrega(${idx}, this.value)" class="w-14 p-1 border-2 border-blue-400 rounded text-center font-extrabold bg-white text-blue-900">
+            <div class="flex items-center gap-2">
+              <span class="font-extrabold text-blue-900 text-sm">${item.cant} un.</span>
+              <button onclick="listaSalidaTemporal.splice(${idx},1); renderListaSalidaTemporal();" class="text-red-500 font-bold px-1">✕</button>
             </div>
           </div>
         `;
       });
     }
 
-    function toggleEntregaItem(index, checked) {
-      if (estadoActualEntrega[index]) {
-        estadoActualEntrega[index].activo = checked;
-        const input = document.getElementById(`input-ent-${index}`);
-        if (input) input.disabled = !checked;
-      }
-    }
-
-    function actualizarCantEntrega(index, val) {
-      if (estadoActualEntrega[index]) {
-        let v = parseInt(val) || 0;
-        if (v > estadoActualEntrega[index].cantMax) v = estadoActualEntrega[index].cantMax;
-        if (v < 0) v = 0;
-        estadoActualEntrega[index].cantAEntregar = v;
-      }
-    }
-
-    function copiarListaEntregaWhatsApp() {
-      let seleccionados = estadoActualEntrega.filter(i => i.activo && i.cantAEntregar > 0);
-      if (seleccionados.length === 0) return alert('No hay ítems seleccionados para entregar.');
+    function copiarSalidaWhatsApp() {
+      if (listaSalidaTemporal.length === 0) return alert('La lista de salida está vacía.');
       
-      let txt = "*MATERIALES A ENTREGAR*\n-----------------------------------\n";
-      seleccionados.forEach(i => txt += `• ${i.nombre}: *${i.cantAEntregar} un.*\n`);
-      navigator.clipboard.writeText(txt).then(() => alert('Lista copiada a portapapeles.'));
+      let txt = "*REMITO DE SALIDA DE MATERIALES*\n-----------------------------------\n";
+      listaSalidaTemporal.forEach(i => txt += `• ${i.nombre}: *${i.cant} un.* (${i.ref})\n`);
+      navigator.clipboard.writeText(txt).then(() => alert('Remito copiado a portapapeles.'));
     }
 
-    function confirmarYEntregarMateriales() {
-      let seleccionados = estadoActualEntrega.filter(i => i.activo && i.cantAEntregar > 0);
-      if (seleccionados.length === 0) return alert('No hay ítems seleccionados para entregar.');
+    function confirmarSalidaMateriales() {
+      if (listaSalidaTemporal.length === 0) return alert('La lista de salida está vacía.');
 
-      if (!confirm('¿Querés confirmar la entrega? Se descontará del depósito y se actualizarán los faltantes.')) return;
+      if (!confirm('¿Querés descontar estos materiales del depósito?')) return;
 
-      const niv = document.getElementById('select-entrega-nivel').value;
-      const dptoFiltro = document.getElementById('select-entrega-dpto').value;
-      const dptosAProcesar = dptoFiltro === 'TODOS' ? DPTOS_NUM : [parseInt(dptoFiltro)];
-
-      seleccionados.forEach(item => {
-        let pendientePorEntregar = item.cantAEntregar;
-
-        // 1. Restar de los departamentos
-        dptosAProcesar.forEach(num => {
-          if (pendientePorEntregar <= 0) return;
-          const cod = `${niv}${num}`;
-          const datos = obtenerDatosDpto(cod);
-
-          if (datos.faltantes && datos.faltantes[item.id]) {
-            let actual = datos.faltantes[item.id];
-            let aRestar = Math.min(actual, pendientePorEntregar);
-
-            datos.faltantes[item.id] -= aRestar;
-            pendientePorEntregar -= aRestar;
-
-            if (datos.faltantes[item.id] <= 0) delete datos.faltantes[item.id];
-          }
-        });
-
-        // 2. Restar del depósito
+      listaSalidaTemporal.forEach(item => {
         if (!deposito[item.id]) deposito[item.id] = 0;
-        deposito[item.id] = Math.max(0, deposito[item.id] - item.cantAEntregar);
+        deposito[item.id] = Math.max(0, deposito[item.id] - item.cant);
       });
 
       guardarDatos();
-      calcularVistaEntrega();
-      actualizarPorcentajeAvanceObra();
-      renderPlano();
-      alert('¡Entrega registrada y stock en depósito actualizado con éxito!');
+      listaSalidaTemporal = [];
+      renderListaSalidaTemporal();
+      poblarSelectEntregaLibre();
+      alert('¡Materiales descontados del depósito correctamente!');
     }
 
     let listaPedidoCompraCalculada = [];
