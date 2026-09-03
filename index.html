@@ -159,35 +159,24 @@
       </div>
     </div>
 
-    <!-- PESTAÑA 2: VISTA DE ENTREGAS BASADA EN PLANTILLA DE DPTO -->
+    <!-- PESTAÑA 2: VISTA DE ENTREGAS SIMPLIFICADA POR TIPO DE PLANTILLA -->
     <section id="sec-entregas" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-base text-gray-800 mb-1">Armar Salida por Departamento</h2>
-        <p class="text-[11px] text-gray-500 mb-3">Elegí el departamento y la app te carga su plantilla guiada para que edites lo que entregás hoy.</p>
+        <h2 class="font-bold text-base text-gray-800 mb-1">Armar Salida por Tipo de Departamento</h2>
+        <p class="text-[11px] text-gray-500 mb-3">Elegí el modelo de departamento para cargar los insumos y descontar del stock.</p>
         
-        <div class="grid grid-cols-2 gap-2 mb-3">
-          <div>
-            <label class="text-xs font-bold text-gray-700 block mb-1">Nivel / Piso:</label>
-            <select id="select-salida-nivel" onchange="cargarPlantillaParaSalida()" class="w-full p-2 border rounded text-xs bg-gray-50 font-bold text-blue-900">
-              <option value="A">Nivel 1 (A)</option>
-              <option value="B">Nivel 2 (B)</option>
-              <option value="C">Nivel 3 (C)</option>
-              <option value="D">Nivel 4 (D)</option>
-              <option value="E">Nivel 5 (E)</option>
-              <option value="F">Nivel 6 (F)</option>
-            </select>
-          </div>
-          <div>
-            <label class="text-xs font-bold text-gray-700 block mb-1">Departamento:</label>
-            <select id="select-salida-dpto" onchange="cargarPlantillaParaSalida()" class="w-full p-2 border rounded text-xs bg-gray-50 font-bold text-blue-900"></select>
-          </div>
+        <div class="mb-3">
+          <label class="text-xs font-bold text-gray-700 block mb-1">Tipo de Departamento:</label>
+          <select id="select-salida-tipo" onchange="cargarPlantillaParaSalida()" class="w-full p-2.5 border rounded-lg text-xs bg-gray-50 font-bold text-blue-900">
+            <option value="STD">Departamento Estándar (2 Aires 12K)</option>
+            <option value="ESP1">Especial Tipo 1 (A9, A16 — 2x12K + 1x18K)</option>
+            <option value="ESP2">Especial Tipo 2 (A1, A8 — 3x12K)</option>
+          </select>
         </div>
-
-        <div id="badge-tipo-dpto-salida" class="p-2 mb-3 rounded-lg bg-blue-50 border border-blue-200 text-xs font-bold text-blue-900 text-center"></div>
 
         <!-- LISTA INTERACTIVA BASADA EN PLANTILLA -->
         <div class="border-t pt-3 space-y-2">
-          <h3 class="font-bold text-xs text-gray-700">Ajustá lo que le entregás hoy:</h3>
+          <h3 class="font-bold text-xs text-gray-700">Ajustá las cantidades a entregar:</h3>
           <div id="contenedor-plantilla-salida" class="space-y-2 max-h-[45vh] overflow-y-auto pr-1"></div>
         </div>
 
@@ -353,7 +342,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v24`, `${prefijo}_v23`, `${prefijo}_v22`, `${prefijo}_v21`, `${prefijo}_v20`
+        `${prefijo}_v25`, `${prefijo}_v24`, `${prefijo}_v23`, `${prefijo}_v22`
       ];
       for (let c of claves) {
         try {
@@ -381,7 +370,7 @@
 
     function init() {
       renderPlano();
-      poblarSelectsSalida();
+      cargarPlantillaParaSalida();
       renderGestionMateriales();
       actualizarPorcentajeAvanceObra();
     }
@@ -719,46 +708,29 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v25', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp1_v25', JSON.stringify(materialesEsp1));
+        localStorage.setItem('obra_mat_esp2_v25', JSON.stringify(materialesEsp2));
+        localStorage.setItem('obra_dptos_datos_v25', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v25', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v24', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp1_v24', JSON.stringify(materialesEsp1));
         localStorage.setItem('obra_mat_esp2_v24', JSON.stringify(materialesEsp2));
         localStorage.setItem('obra_dptos_datos_v24', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v24', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v23', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp1_v23', JSON.stringify(materialesEsp1));
-        localStorage.setItem('obra_mat_esp2_v23', JSON.stringify(materialesEsp2));
-        localStorage.setItem('obra_dptos_datos_v23', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v23', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
     }
 
-    function poblarSelectsSalida() {
-      const selDpto = document.getElementById('select-salida-dpto');
-      selDpto.innerHTML = '';
-      DPTOS_NUM.forEach(n => {
-        let tag = 'Estándar';
-        if (ESPECIALES_TIPO1.includes(n)) tag = 'Especial 1 (2x12K + 1x18K)';
-        if (ESPECIALES_TIPO2.includes(n)) tag = 'Especial 2 (3x12K)';
-        selDpto.innerHTML += `<option value="${n}">Dpto ${n} (${tag})</option>`;
-      });
-    }
-
+    // CARGA DE PLANTILLA POR TIPO EN SALIDA DE MATERIALES
     function cargarPlantillaParaSalida() {
-      const niv = document.getElementById('select-salida-nivel').value;
-      const numDpto = parseInt(document.getElementById('select-salida-dpto').value);
-      const cod = `${niv}${numDpto}`;
-      const datos = obtenerDatosDpto(cod);
-      const listaMat = obtenerListaBaseParaDpto(numDpto);
+      const tipo = document.getElementById('select-salida-tipo').value;
+      let listaMat = materialesStd;
 
-      const badge = document.getElementById('badge-tipo-dpto-salida');
-      let desc = 'DPTO ESTÁNDAR (2 Aires 12.000btu)';
-      if (ESPECIALES_TIPO1.includes(numDpto)) desc = 'DPTO ESPECIAL TIPO 1 (2 Aires 12.000btu + 1 Aire 18.000btu)';
-      if (ESPECIALES_TIPO2.includes(numDpto)) desc = 'DPTO ESPECIAL TIPO 2 (3 Aires 12.000btu)';
-      
-      badge.innerText = `${cod} - ${desc}`;
+      if (tipo === 'ESP1') listaMat = materialesEsp1;
+      if (tipo === 'ESP2') listaMat = materialesEsp2;
 
       const cont = document.getElementById('contenedor-plantilla-salida');
       cont.innerHTML = '';
@@ -766,14 +738,12 @@
 
       listaMat.forEach((m, idx) => {
         if (m && m.cant > 0) {
-          const faltAct = (datos.faltantes && datos.faltantes[m.id] !== undefined) ? datos.faltantes[m.id] : m.cant;
-          const stockDep = deposito[m.id] || 0;
+          const stockDep = deposito[m.id] !== undefined ? deposito[m.id] : 0;
 
           itemsSalidaGuiada.push({
             id: m.id,
             nombre: m.nombre,
-            cantAEntregar: faltAct,
-            cantMax: m.cant,
+            cantAEntregar: m.cant,
             activo: true
           });
 
@@ -782,11 +752,11 @@
               <input type="checkbox" id="chk-sal-${idx}" checked onchange="itemsSalidaGuiada[${idx}].activo = this.checked; document.getElementById('inp-sal-${idx}').disabled = !this.checked;" class="w-4 h-4 text-blue-600 rounded">
               <div class="flex-1 min-w-0">
                 <span class="font-bold text-gray-800 block truncate">${m.nombre}</span>
-                <span class="text-[10px] text-gray-500">Total Dpto: ${m.cant} | Stock Depósito: ${stockDep}</span>
+                <span class="text-[10px] text-gray-500">Ref. Plantilla: ${m.cant} un. | Stock Depósito: ${stockDep}</span>
               </div>
               <div class="flex items-center gap-1">
                 <span class="text-[10px] text-gray-600 font-bold">Dar Hoy:</span>
-                <input type="number" id="inp-sal-${idx}" value="${faltAct}" min="0" onfocus="this.select()" onchange="itemsSalidaGuiada[${idx}].cantAEntregar = parseInt(this.value)||0" class="w-14 p-1 border-2 border-blue-400 rounded text-center font-extrabold bg-white text-blue-900">
+                <input type="number" id="inp-sal-${idx}" value="${m.cant}" min="0" onfocus="this.select()" onchange="itemsSalidaGuiada[${idx}].cantAEntregar = parseInt(this.value)||0" class="w-14 p-1 border-2 border-blue-400 rounded text-center font-extrabold bg-white text-blue-900">
               </div>
             </div>
           `;
@@ -795,60 +765,37 @@
     }
 
     function copiarSalidaGuiaWhatsApp() {
-      const niv = document.getElementById('select-salida-nivel').value;
-      const numDpto = document.getElementById('select-salida-dpto').value;
+      const tipoSelect = document.getElementById('select-salida-tipo');
+      const textoTipo = tipoSelect.options[tipoSelect.selectedIndex].text;
       let seleccionados = itemsSalidaGuiada.filter(i => i.activo && i.cantAEntregar > 0);
       
       if (seleccionados.length === 0) return alert('No seleccionaste ningún insumo para entregar.');
       
-      let txt = `*REMITO SALIDA MATERIALES - DPTO ${niv}${numDpto}*\n-----------------------------------\n`;
+      let txt = `*REMITO SALIDA MATERIALES (${textoTipo})*\n-----------------------------------\n`;
       seleccionados.forEach(i => txt += `• ${i.nombre}: *${i.cantAEntregar} un.*\n`);
       navigator.clipboard.writeText(txt).then(() => alert('Lista copiada a portapapeles.'));
     }
 
-    // FUNCIÓN CORREGIDA Y BLINDADA DE DESCUENTO
     function confirmarSalidaSegunPlantilla() {
-      const niv = document.getElementById('select-salida-nivel').value;
-      const numDpto = parseInt(document.getElementById('select-salida-dpto').value);
-      const cod = `${niv}${numDpto}`;
-      const datos = obtenerDatosDpto(cod);
+      const tipoSelect = document.getElementById('select-salida-tipo');
+      const textoTipo = tipoSelect.options[tipoSelect.selectedIndex].text;
 
       let seleccionados = itemsSalidaGuiada.filter(i => i.activo && i.cantAEntregar > 0);
       if (seleccionados.length === 0) return alert('No seleccionaste ningún insumo para entregar.');
 
-      if (!confirm(`¿Confirmás la salida de materiales para el departamento ${cod}? Se descontará del Depósito y actualizará el departamento.`)) return;
+      if (!confirm(`¿Confirmás la salida de materiales para ${textoTipo}? Se descontará del Depósito.`)) return;
 
       seleccionados.forEach(item => {
-        // 1. Descontar stock directamente de Depósito
         let stockActual = deposito[item.id] !== undefined ? deposito[item.id] : 0;
         deposito[item.id] = Math.max(0, stockActual - item.cantAEntregar);
-
-        // 2. Actualizar faltantes en el Departamento
-        let listaMat = obtenerListaBaseParaDpto(numDpto);
-        let matBase = listaMat.find(x => x.id === item.id);
-        let reqTotal = matBase ? matBase.cant : item.cantMax;
-
-        let faltanteAnterior = (datos.faltantes && datos.faltantes[item.id] !== undefined) ? datos.faltantes[item.id] : reqTotal;
-        let nuevoFaltante = Math.max(0, faltanteAnterior - item.cantAEntregar);
-
-        if (!datos.faltantes) datos.faltantes = {};
-        if (nuevoFaltante <= 0) {
-          delete datos.faltantes[item.id];
-        } else {
-          datos.faltantes[item.id] = nuevoFaltante;
-        }
       });
 
-      // Guardar inmediatamente en localStorage
       guardarDatos();
-
-      // Refrescar vistas
       cargarPlantillaParaSalida();
       renderGestionMateriales();
       actualizarPorcentajeAvanceObra();
-      renderPlano();
 
-      alert(`¡Materiales descontados de Depósito y Dpto ${cod} actualizado con éxito!`);
+      alert(`¡Materiales descontados del Depósito con éxito!`);
     }
 
     let listaPedidoCompraCalculada = [];
