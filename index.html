@@ -275,8 +275,10 @@
   <script>
     const NIVELES = ['A', 'B', 'C', 'D', 'E', 'F'];
     const DPTOS_NUM = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16];
-    const ESPECIALES_TIPO1 = [1, 8]; // 2 Aire 12K + 1 Aire 18K
-    const ESPECIALES_TIPO2 = [9, 16]; // 3 Aire 12K
+    
+    // CORRECCIÓN SOLICITADA:
+    const ESPECIALES_TIPO1 = [9, 16]; // A9, A16 ➔ 2 Aires 12K + 1 Aire 18K
+    const ESPECIALES_TIPO2 = [1, 8];  // A1, A8 ➔ 3 Aires 12K
     const ESPECIALES = [1, 8, 9, 16];
 
     const plantillaBaseInicialStd = [
@@ -320,7 +322,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v21`, `${prefijo}_v20`, `${prefijo}_v19`, `${prefijo}_v18`
+        `${prefijo}_v22`, `${prefijo}_v21`, `${prefijo}_v20`, `${prefijo}_v19`
       ];
       for (let c of claves) {
         try {
@@ -698,21 +700,20 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v22', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp_v22', JSON.stringify(materialesEsp));
+        localStorage.setItem('obra_dptos_datos_v22', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v22', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v21', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp_v21', JSON.stringify(materialesEsp));
         localStorage.setItem('obra_dptos_datos_v21', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v21', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v20', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp_v20', JSON.stringify(materialesEsp));
-        localStorage.setItem('obra_dptos_datos_v20', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v20', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
     }
 
-    // POBLE SELECTS DE SALIDA GUIADA POR DPTO
     function poblarSelectsSalida() {
       const selDpto = document.getElementById('select-salida-dpto');
       selDpto.innerHTML = '';
