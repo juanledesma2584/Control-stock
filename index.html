@@ -217,33 +217,55 @@
       </div>
     </section>
 
-    <!-- PESTAÑA 4: PEDIDO TEÓRICO EDITABLE POR PISO (100% BRUTO EDITABLE) -->
+    <!-- PESTAÑA 4: PEDIDO MULTIPISO CON DESCUENTO OPCIONAL DE DEPÓSITO -->
     <section id="sec-pedidopiso" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-blue-200">
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xl">📦</span>
           <div>
-            <h2 class="font-bold text-base text-blue-950 leading-tight">Proyección de Pedido por Piso (Editable)</h2>
-            <p class="text-[11px] text-gray-500">Ajustá libremente la cantidad a pedir por insumo según lo que ya tengas en stock.</p>
+            <h2 class="font-bold text-base text-blue-950 leading-tight">Proyección de Pedido Multipiso</h2>
+            <p class="text-[11px] text-gray-500">Seleccioná los pisos requeridos y decidí si descontar el stock sobrante en Depósito.</p>
           </div>
         </div>
 
-        <div class="mb-3 border-t pt-3">
-          <label class="text-xs font-bold text-gray-700 block mb-1">Seleccioná el Piso a Prever / Pedir:</label>
-          <select id="select-pedidopiso-nivel" onchange="calcularPedidoPisoTeorico()" class="w-full p-2.5 border rounded-lg text-xs bg-blue-50 font-extrabold text-blue-900 border-blue-300">
-            <option value="A">Piso 1 (Nivel A) — 16 Dptos</option>
-            <option value="B">Piso 2 (Nivel B) — 16 Dptos</option>
-            <option value="C">Piso 3 (Nivel C) — 16 Dptos</option>
-            <option value="D" selected>Piso 4 (Nivel D) — 16 Dptos</option>
-            <option value="E">Piso 5 (Nivel E) — 16 Dptos</option>
-            <option value="F">Piso 6 (Nivel F) — 16 Dptos</option>
-          </select>
+        <!-- SELECCIÓN MULTIPISO -->
+        <div class="border-t pt-3 space-y-2">
+          <label class="text-xs font-bold text-gray-700 block">Seleccioná los Pisos a Incluir:</label>
+          <div class="grid grid-cols-3 gap-2 bg-blue-50/60 p-2.5 rounded-xl border border-blue-200 text-xs font-bold text-blue-900">
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" value="A" onchange="calcularPedidoPisoTeorico()" class="chk-piso w-4 h-4 text-blue-600 rounded"> Piso 1 (A)
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" value="B" onchange="calcularPedidoPisoTeorico()" class="chk-piso w-4 h-4 text-blue-600 rounded"> Piso 2 (B)
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" value="C" onchange="calcularPedidoPisoTeorico()" class="chk-piso w-4 h-4 text-blue-600 rounded"> Piso 3 (C)
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" value="D" checked onchange="calcularPedidoPisoTeorico()" class="chk-piso w-4 h-4 text-blue-600 rounded"> Piso 4 (D)
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" value="E" checked onchange="calcularPedidoPisoTeorico()" class="chk-piso w-4 h-4 text-blue-600 rounded"> Piso 5 (E)
+            </label>
+            <label class="flex items-center gap-1.5 cursor-pointer">
+              <input type="checkbox" value="F" onchange="calcularPedidoPisoTeorico()" class="chk-piso w-4 h-4 text-blue-600 rounded"> Piso 6 (F)
+            </label>
+          </div>
         </div>
 
-        <div id="resumen-pedidopiso-teorico" class="space-y-1.5 border-t pt-3 max-h-[50vh] overflow-y-auto pr-1"></div>
+        <!-- OPCIÓN DESCONTAR DEPÓSITO -->
+        <div class="mt-3 bg-amber-50 p-2.5 rounded-xl border border-amber-200 flex items-center justify-between text-xs">
+          <div>
+            <span class="font-bold text-amber-900 block">Descontar Stock Sobrante de Depósito</span>
+            <span class="text-[10px] text-amber-800">Resta lo que te quedó guardado de los pisos anteriores.</span>
+          </div>
+          <input type="checkbox" id="chk-descontar-deposito-teorico" checked onchange="calcularPedidoPisoTeorico()" class="w-5 h-5 text-amber-600 rounded cursor-pointer">
+        </div>
+
+        <div id="resumen-pedidopiso-teorico" class="space-y-1.5 border-t pt-3 max-h-[45vh] overflow-y-auto pr-1"></div>
 
         <button onclick="copiarPedidoPisoWhatsApp()" class="w-full mt-4 bg-blue-900 text-white py-3 rounded-xl font-bold text-xs hover:bg-blue-950 shadow-md flex items-center justify-center gap-2">
-          <span>📋</span> Copiar Pedido Ajustado para Proveedor
+          <span>📋</span> Copiar Pedido Consolidado para Proveedor
         </button>
       </div>
     </section>
@@ -374,7 +396,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v27`, `${prefijo}_v26`, `${prefijo}_v25`, `${prefijo}_v24`
+        `${prefijo}_v28`, `${prefijo}_v27`, `${prefijo}_v26`, `${prefijo}_v25`
       ];
       for (let c of claves) {
         try {
@@ -745,17 +767,17 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v28', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp1_v28', JSON.stringify(materialesEsp1));
+        localStorage.setItem('obra_mat_esp2_v28', JSON.stringify(materialesEsp2));
+        localStorage.setItem('obra_dptos_datos_v28', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v28', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v27', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp1_v27', JSON.stringify(materialesEsp1));
         localStorage.setItem('obra_mat_esp2_v27', JSON.stringify(materialesEsp2));
         localStorage.setItem('obra_dptos_datos_v27', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v27', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v26', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp1_v26', JSON.stringify(materialesEsp1));
-        localStorage.setItem('obra_mat_esp2_v26', JSON.stringify(materialesEsp2));
-        localStorage.setItem('obra_dptos_datos_v26', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v26', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
@@ -893,62 +915,78 @@
       navigator.clipboard.writeText(txt).then(() => alert('Pedido copiado.'));
     }
 
-    // LÓGICA PEDIDO TEÓRICO COMPLETO EDITABLE POR PISO
+    // LÓGICA PEDIDO MULTIPISO CON DESCUENTO OPCIONAL DE DEPÓSITO
     function calcularPedidoPisoTeorico() {
-      const selectPiso = document.getElementById('select-pedidopiso-nivel');
+      const chks = document.querySelectorAll('.chk-piso:checked');
+      const descontarDep = document.getElementById('chk-descontar-deposito-teorico').checked;
       const cont = document.getElementById('resumen-pedidopiso-teorico');
       cont.innerHTML = '';
       listaPedidoPisoTeoricoCalculada = [];
 
+      if (chks.length === 0) {
+        cont.innerHTML = '<p class="text-xs text-red-500 font-bold p-2 text-center">Seleccioná al menos un piso.</p>';
+        return;
+      }
+
       let acumuladoTeorico = {};
 
-      // 16 Departamentos del Piso seleccionado
-      DPTOS_NUM.forEach(num => {
-        const listaMat = obtenerListaBaseParaDpto(num);
-        listaMat.forEach(m => {
-          if (m && m.cant > 0) {
-            let keyNombre = m.nombre.trim();
-            if (!acumuladoTeorico[keyNombre]) acumuladoTeorico[keyNombre] = 0;
-            acumuladoTeorico[keyNombre] += m.cant;
-          }
+      // Sumar demanda teórica de todos los pisos seleccionados
+      chks.forEach(chk => {
+        DPTOS_NUM.forEach(num => {
+          const listaMat = obtenerListaBaseParaDpto(num);
+          listaMat.forEach(m => {
+            if (m && m.cant > 0) {
+              let keyNombre = m.nombre.trim();
+              if (!acumuladoTeorico[keyNombre]) acumuladoTeorico[keyNombre] = { nombre: keyNombre, id: m.id, cantTotal: 0 };
+              acumuladoTeorico[keyNombre].cantTotal += m.cant;
+            }
+          });
         });
       });
 
       let idx = 0;
       Object.keys(acumuladoTeorico).forEach(nombreKey => {
-        const cantTotal = acumuladoTeorico[nombreKey];
-        if (cantTotal > 0) {
-          listaPedidoPisoTeoricoCalculada.push({ nombre: nombreKey, cant: cantTotal });
-
-          cont.innerHTML += `
-            <div class="flex justify-between items-center p-2 bg-blue-50/50 border border-blue-100 rounded text-xs shadow-sm">
-              <div>
-                <p class="font-bold text-gray-800">${nombreKey}</p>
-                <p class="text-[10px] text-gray-500">Sugerido teo: ${cantTotal} un.</p>
-              </div>
-              <div class="flex items-center gap-1">
-                <span class="text-[10px] text-blue-900 font-bold">Pedir:</span>
-                <input type="number" value="${cantTotal}" min="0" onfocus="this.select()" onchange="listaPedidoPisoTeoricoCalculada[${idx}].cant = parseInt(this.value)||0" class="w-16 p-1 border-2 border-blue-400 rounded-lg text-center font-black text-sm bg-white text-blue-900">
-              </div>
-            </div>
-          `;
-          idx++;
+        const item = acumuladoTeorico[nombreKey];
+        const stockDep = deposito[item.id] || 0;
+        
+        let aPedirSugerido = item.cantTotal;
+        if (descontarDep) {
+          aPedirSugerido = Math.max(0, item.cantTotal - stockDep);
         }
+
+        listaPedidoPisoTeoricoCalculada.push({ nombre: item.nombre, cant: aPedirSugerido });
+
+        cont.innerHTML += `
+          <div class="flex justify-between items-center p-2 bg-blue-50/50 border border-blue-100 rounded text-xs shadow-sm">
+            <div>
+              <p class="font-bold text-gray-800">${item.nombre}</p>
+              <p class="text-[10px] text-gray-500">
+                Teórico (${chks.length} pisos): ${item.cantTotal} un. ${descontarDep ? '| Stock Depósito: ' + stockDep : ''}
+              </p>
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-[10px] text-blue-900 font-bold">Pedir:</span>
+              <input type="number" value="${aPedirSugerido}" min="0" onfocus="this.select()" onchange="listaPedidoPisoTeoricoCalculada[${idx}].cant = parseInt(this.value)||0" class="w-16 p-1 border-2 border-blue-400 rounded-lg text-center font-black text-sm bg-white text-blue-900">
+            </div>
+          </div>
+        `;
+        idx++;
       });
     }
 
     function copiarPedidoPisoWhatsApp() {
-      const selectPiso = document.getElementById('select-pedidopiso-nivel');
-      const textoPiso = selectPiso.options[selectPiso.selectedIndex].text;
+      const chks = document.querySelectorAll('.chk-piso:checked');
+      let pisosNombres = [];
+      chks.forEach(c => pisosNombres.push(`Piso ${NIVELES.indexOf(c.value)+1}`));
 
       let seleccionados = listaPedidoPisoTeoricoCalculada.filter(i => i.cant > 0);
 
       if (seleccionados.length === 0) return alert('No hay insumos con cantidad mayor a 0 para copiar.');
 
-      let txt = `*PEDIDO EDITADO DE MATERIALES*\n📌 *${textoPiso}*\n-----------------------------------\n`;
+      let txt = `*PEDIDO DE MATERIALES MULTIPISO*\n📌 *Incluye: ${pisosNombres.join(', ')}*\n-----------------------------------\n`;
       seleccionados.forEach(i => txt += `• ${i.nombre}: *${i.cant} un.*\n`);
       
-      navigator.clipboard.writeText(txt).then(() => alert(`¡Pedido del ${textoPiso} copiado al portapapeles!`));
+      navigator.clipboard.writeText(txt).then(() => alert(`¡Pedido de ${pisosNombres.join(', ')} copiado al portapapeles!`));
     }
 
     function renderGestionMateriales() {
