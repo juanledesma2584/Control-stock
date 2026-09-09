@@ -217,14 +217,14 @@
       </div>
     </section>
 
-    <!-- PESTAÑA 4: PEDIDO MULTIPISO CON DESCUENTO OPCIONAL DE DEPÓSITO -->
+    <!-- PESTAÑA 4: PEDIDO MULTIPISO AJUSTADO POR AVANCE REAL -->
     <section id="sec-pedidopiso" class="hidden space-y-4">
       <div class="bg-white p-4 rounded-xl shadow-sm border border-blue-200">
         <div class="flex items-center gap-2 mb-2">
           <span class="text-xl">📦</span>
           <div>
             <h2 class="font-bold text-base text-blue-950 leading-tight">Proyección de Pedido Multipiso</h2>
-            <p class="text-[11px] text-gray-500">Seleccioná los pisos requeridos y decidí si descontar el stock sobrante en Depósito.</p>
+            <p class="text-[11px] text-gray-500">Calcula solo lo que falta instalar en los pisos seleccionados y descuenta el Depósito.</p>
           </div>
         </div>
 
@@ -256,8 +256,8 @@
         <!-- OPCIÓN DESCONTAR DEPÓSITO -->
         <div class="mt-3 bg-amber-50 p-2.5 rounded-xl border border-amber-200 flex items-center justify-between text-xs">
           <div>
-            <span class="font-bold text-amber-900 block">Descontar Stock Sobrante de Depósito</span>
-            <span class="text-[10px] text-amber-800">Resta lo que te quedó guardado de los pisos anteriores.</span>
+            <span class="font-bold text-amber-900 block">Descontar Stock en Depósito</span>
+            <span class="text-[10px] text-amber-800">Resta lo que tenés físicamente guardado en el depósito.</span>
           </div>
           <input type="checkbox" id="chk-descontar-deposito-teorico" checked onchange="calcularPedidoPisoTeorico()" class="w-5 h-5 text-amber-600 rounded cursor-pointer">
         </div>
@@ -396,7 +396,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v28`, `${prefijo}_v27`, `${prefijo}_v26`, `${prefijo}_v25`
+        `${prefijo}_v29`, `${prefijo}_v28`, `${prefijo}_v27`, `${prefijo}_v26`
       ];
       for (let c of claves) {
         try {
@@ -767,17 +767,17 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v29', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp1_v29', JSON.stringify(materialesEsp1));
+        localStorage.setItem('obra_mat_esp2_v29', JSON.stringify(materialesEsp2));
+        localStorage.setItem('obra_dptos_datos_v29', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v29', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v28', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp1_v28', JSON.stringify(materialesEsp1));
         localStorage.setItem('obra_mat_esp2_v28', JSON.stringify(materialesEsp2));
         localStorage.setItem('obra_dptos_datos_v28', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v28', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v27', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp1_v27', JSON.stringify(materialesEsp1));
-        localStorage.setItem('obra_mat_esp2_v27', JSON.stringify(materialesEsp2));
-        localStorage.setItem('obra_dptos_datos_v27', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v27', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
@@ -915,7 +915,7 @@
       navigator.clipboard.writeText(txt).then(() => alert('Pedido copiado.'));
     }
 
-    // LÓGICA PEDIDO MULTIPISO CON DESCUENTO OPCIONAL DE DEPÓSITO
+    // LÓGICA REVISADA: PEDIDO MULTIPISO BASADO EN FALTANTES REALES PENDIENTES
     function calcularPedidoPisoTeorico() {
       const chks = document.querySelectorAll('.chk-piso:checked');
       const descontarDep = document.getElementById('chk-descontar-deposito-teorico').checked;
@@ -928,30 +928,37 @@
         return;
       }
 
-      let acumuladoTeorico = {};
+      let acumuladoFaltanteReal = {};
 
-      // Sumar demanda teórica de todos los pisos seleccionados
+      // Sumar SOLO los faltantes reales observados/pendientes de los pisos seleccionados
       chks.forEach(chk => {
+        const niv = chk.value;
         DPTOS_NUM.forEach(num => {
+          const cod = `${niv}${num}`;
+          const datos = obtenerDatosDpto(cod);
           const listaMat = obtenerListaBaseParaDpto(num);
+
           listaMat.forEach(m => {
             if (m && m.cant > 0) {
-              let keyNombre = m.nombre.trim();
-              if (!acumuladoTeorico[keyNombre]) acumuladoTeorico[keyNombre] = { nombre: keyNombre, id: m.id, cantTotal: 0 };
-              acumuladoTeorico[keyNombre].cantTotal += m.cant;
+              const falt = (datos.faltantes && datos.faltantes[m.id] !== undefined) ? datos.faltantes[m.id] : 0;
+              if (falt > 0) {
+                let keyNombre = m.nombre.trim();
+                if (!acumuladoFaltanteReal[keyNombre]) acumuladoFaltanteReal[keyNombre] = { nombre: keyNombre, id: m.id, cantFaltante: 0 };
+                acumuladoFaltanteReal[keyNombre].cantFaltante += falt;
+              }
             }
           });
         });
       });
 
       let idx = 0;
-      Object.keys(acumuladoTeorico).forEach(nombreKey => {
-        const item = acumuladoTeorico[nombreKey];
+      Object.keys(acumuladoFaltanteReal).forEach(nombreKey => {
+        const item = acumuladoFaltanteReal[nombreKey];
         const stockDep = deposito[item.id] || 0;
         
-        let aPedirSugerido = item.cantTotal;
+        let aPedirSugerido = item.cantFaltante;
         if (descontarDep) {
-          aPedirSugerido = Math.max(0, item.cantTotal - stockDep);
+          aPedirSugerido = Math.max(0, item.cantFaltante - stockDep);
         }
 
         listaPedidoPisoTeoricoCalculada.push({ nombre: item.nombre, cant: aPedirSugerido });
@@ -961,7 +968,7 @@
             <div>
               <p class="font-bold text-gray-800">${item.nombre}</p>
               <p class="text-[10px] text-gray-500">
-                Teórico (${chks.length} pisos): ${item.cantTotal} un. ${descontarDep ? '| Stock Depósito: ' + stockDep : ''}
+                Pendiente Dptos: ${item.cantFaltante} un. ${descontarDep ? '| Stock Depósito: ' + stockDep : ''}
               </p>
             </div>
             <div class="flex items-center gap-1">
@@ -972,6 +979,10 @@
         `;
         idx++;
       });
+
+      if (idx === 0) {
+        cont.innerHTML = '<p class="text-xs text-green-700 font-bold p-3 text-center bg-green-50 border border-green-200 rounded-xl">✔ ¡Los pisos seleccionados están 100% completos o no tienen faltantes cargados!</p>';
+      }
     }
 
     function copiarPedidoPisoWhatsApp() {
