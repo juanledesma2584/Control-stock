@@ -2,11 +2,23 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Control de Instalaciones</title>
   
+  <!-- Configuración de PWA y App Instalable -->
+  <meta name="theme-color" content="#1d4ed8">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Control Obra">
+  <meta name="application-name" content="Control Obra">
+
+  <!-- Iconos App -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231d4ed8'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><path d='M30 25 L45 40 L35 50 L20 35 Z M70 25 L55 40 L65 50 L80 35 Z' fill='%23ffffff'/><circle cx='50' cy='45' r='8' fill='%23f59e0b'/><path d='M42 50 L30 80 L38 85 L50 58 Z M58 50 L70 80 L62 85 L50 58 Z' fill='%23dc2626'/></svg>">
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231d4ed8'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><path d='M30 25 L45 40 L35 50 L20 35 Z M70 25 L55 40 L65 50 L80 35 Z' fill='%23ffffff'/><circle cx='50' cy='45' r='8' fill='%23f59e0b'/><path d='M42 50 L30 80 L38 85 L50 58 Z M58 50 L70 80 L62 85 L50 58 Z' fill='%23dc2626'/></svg>">
+
+  <!-- Manifest Inline para forzar botón de instalación PWA -->
+  <link rel="manifest" href="data:application/manifest+json;utf8,{\"name\":\"Control%20de%20Obra\",\"short_name\":\"ControlObra\",\"start_url\":\".\",\"display\":\"standalone\",\"background_color\":\"%231d4ed8\",\"theme_color\":\"%231d4ed8\",\"icons\":[{\"src\":\"data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231d4ed8'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><path d='M30 25 L45 40 L35 50 L20 35 Z M70 25 L55 40 L65 50 L80 35 Z' fill='%23ffffff'/><circle cx='50' cy='45' r='8' fill='%23f59e0b'/><path d='M42 50 L30 80 L38 85 L50 58 Z M58 50 L70 80 L62 85 L50 58 Z' fill='%23dc2626'/></svg>\",\"sizes\":\"512x512\",\"type\":\"image/svg+xml\",\"purpose\":\"any maskable\"}]}">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -396,7 +408,7 @@
 
     function buscarEnCualquierVersion(prefijo, defecto) {
       const claves = [
-        `${prefijo}_v29`, `${prefijo}_v28`, `${prefijo}_v27`, `${prefijo}_v26`
+        `${prefijo}_v30`, `${prefijo}_v29`, `${prefijo}_v28`, `${prefijo}_v27`
       ];
       for (let c of claves) {
         try {
@@ -767,17 +779,17 @@
 
     function guardarDatos() {
       try {
+        localStorage.setItem('obra_mat_std_v30', JSON.stringify(materialesStd));
+        localStorage.setItem('obra_mat_esp1_v30', JSON.stringify(materialesEsp1));
+        localStorage.setItem('obra_mat_esp2_v30', JSON.stringify(materialesEsp2));
+        localStorage.setItem('obra_dptos_datos_v30', JSON.stringify(dptosDatos));
+        localStorage.setItem('obra_deposito_v30', JSON.stringify(deposito));
+
         localStorage.setItem('obra_mat_std_v29', JSON.stringify(materialesStd));
         localStorage.setItem('obra_mat_esp1_v29', JSON.stringify(materialesEsp1));
         localStorage.setItem('obra_mat_esp2_v29', JSON.stringify(materialesEsp2));
         localStorage.setItem('obra_dptos_datos_v29', JSON.stringify(dptosDatos));
         localStorage.setItem('obra_deposito_v29', JSON.stringify(deposito));
-
-        localStorage.setItem('obra_mat_std_v28', JSON.stringify(materialesStd));
-        localStorage.setItem('obra_mat_esp1_v28', JSON.stringify(materialesEsp1));
-        localStorage.setItem('obra_mat_esp2_v28', JSON.stringify(materialesEsp2));
-        localStorage.setItem('obra_dptos_datos_v28', JSON.stringify(dptosDatos));
-        localStorage.setItem('obra_deposito_v28', JSON.stringify(deposito));
       } catch (e) {
         console.error(e);
       }
@@ -915,7 +927,7 @@
       navigator.clipboard.writeText(txt).then(() => alert('Pedido copiado.'));
     }
 
-    // LÓGICA REVISADA: PEDIDO MULTIPISO BASADO EN FALTANTES REALES PENDIENTES
+    // LÓGICA MULTIPISO: EVALÚA FALTANTES REALES PENDIENTES POR CADA PISO SELECCIONADO
     function calcularPedidoPisoTeorico() {
       const chks = document.querySelectorAll('.chk-piso:checked');
       const descontarDep = document.getElementById('chk-descontar-deposito-teorico').checked;
@@ -930,7 +942,6 @@
 
       let acumuladoFaltanteReal = {};
 
-      // Sumar SOLO los faltantes reales observados/pendientes de los pisos seleccionados
       chks.forEach(chk => {
         const niv = chk.value;
         DPTOS_NUM.forEach(num => {
