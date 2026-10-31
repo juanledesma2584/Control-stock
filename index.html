@@ -398,14 +398,20 @@
       { id: 'tm_mono', nombre: 'Llave TM Monofásica 20A', cant: 6 }
     ];
 
+    // RECUPERADOR PROFUNDO: REVISA ABSOLUTAMENTE TODAS LAS CLAVES HISTÓRICAS DE LOCALSTORAGE
     function recuperarDatosDeVersionesAnteriores(prefijo, defecto) {
-      const versiones = [
-        'v30', 'v29', 'v28', 'v27', 'v26', 'v25', 'v24', 'v23', 'v22', 'v21', 'v20',
-        'v19', 'v18', 'v17', 'v16', 'v15', 'v14', 'v13', 'v12', 'v11', 'v10', 'v9', 'v8', 'v7', 'v6'
+      const clavesDirectas = [
+        prefijo,
+        `${prefijo}_v31`, `${prefijo}_v30`, `${prefijo}_v29`, `${prefijo}_v28`, `${prefijo}_v27`, `${prefijo}_v26`,
+        `${prefijo}_v25`, `${prefijo}_v24`, `${prefijo}_v23`, `${prefijo}_v22`, `${prefijo}_v21`, `${prefijo}_v20`,
+        `${prefijo}_v19`, `${prefijo}_v18`, `${prefijo}_v17`, `${prefijo}_v16`, `${prefijo}_v15`, `${prefijo}_v14`,
+        `${prefijo}_v13`, `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`, `${prefijo}_v9`, `${prefijo}_v8`,
+        `${prefijo}_v7`, `${prefijo}_v6`, `${prefijo}_v5`, `${prefijo}_v4`, `${prefijo}_v3`, `${prefijo}_v2`, `${prefijo}_v1`
       ];
-      for (let v of versiones) {
+
+      for (let c of clavesDirectas) {
         try {
-          const res = localStorage.getItem(`${prefijo}_${v}`);
+          const res = localStorage.getItem(c);
           if (res) {
             const parsed = JSON.parse(res);
             if (parsed && (Object.keys(parsed).length > 0 || (Array.isArray(parsed) && parsed.length > 0))) {
@@ -414,6 +420,23 @@
           }
         } catch (e) {}
       }
+
+      // Búsqueda comodín si la clave tuvo algún sufijo no esperado
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        if (k && k.startsWith(prefijo)) {
+          try {
+            const val = localStorage.getItem(k);
+            if (val) {
+              const parsed = JSON.parse(val);
+              if (parsed && (Object.keys(parsed).length > 0 || (Array.isArray(parsed) && parsed.length > 0))) {
+                return parsed;
+              }
+            }
+          } catch (e) {}
+        }
+      }
+
       return defecto;
     }
 
@@ -773,7 +796,7 @@
 
     function guardarDatos() {
       try {
-        const v = 'v31';
+        const v = 'v32';
         localStorage.setItem(`obra_mat_std_${v}`, JSON.stringify(materialesStd));
         localStorage.setItem(`obra_mat_esp1_${v}`, JSON.stringify(materialesEsp1));
         localStorage.setItem(`obra_mat_esp2_${v}`, JSON.stringify(materialesEsp2));
