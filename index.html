@@ -13,7 +13,7 @@
   <meta name="application-name" content="Control Obra">
 
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231d4ed8'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><path d='M30 25 L45 40 L35 50 L20 35 Z M70 25 L55 40 L65 50 L80 35 Z' fill='%23ffffff'/><circle cx='50' cy='45' r='8' fill='%23f59e0b'/><path d='M42 50 L30 80 L38 85 L50 58 Z M58 50 L70 80 L62 85 L50 58 Z' fill='%23dc2626'/></svg>">
-  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231d4ed8'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><path d='M30 25 L45 40 L35 50 L20 35 Z M70 25 L55 40 L65 50 L80 35 Z' fill='%23ffffff'/><circle cx='50' cy='45' r='8' fill='%23f59e0b'/><path d='M42 50 L30 80 L38 85 L50 58 Z M58 50 L70 80 L62 85 L50 58 Z' fill='%23dc2626'/></svg>">
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231d4ed8'><rect width='100' height='100' rx='20' fill='%231d4ed8'/><path d='M30 25 L45 40 L35 50 L20 35 Z M70 25 L55 40 L65 50 L80 35 Z' fill='%23ffffff'/><circle cx='50' cy='45' r='8' fill='%23f59e0b'/><path d='M42 50 L30 80 L38 85 L50 58 Z' fill='%23dc2626'/></svg>">
 
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -310,7 +310,10 @@
       </div>
 
       <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-        <h2 class="font-bold text-base text-gray-800 mb-1">4. Stock Físico en Depósito</h2>
+        <div class="flex justify-between items-center mb-1">
+          <h2 class="font-bold text-base text-gray-800">4. Stock Físico en Depósito</h2>
+          <button onclick="forzarEscaneoProfundo()" class="text-[10px] bg-amber-100 text-amber-900 border border-amber-300 px-2 py-1 rounded font-bold">🔍 Buscar Stock Oculto</button>
+        </div>
         <div id="lista-deposito-gestion" class="space-y-1.5 max-h-[25vh] overflow-y-auto pr-1"></div>
         
         <div class="mt-3 pt-2 border-t space-y-2">
@@ -398,31 +401,41 @@
       { id: 'tm_mono', nombre: 'Llave TM Monofásica 20A', cant: 6 }
     ];
 
-    function recuperarDatosDeVersionesAnteriores(prefijo, defecto) {
-      const clavesDirectas = [
-        prefijo,
-        `${prefijo}_v32`, `${prefijo}_v31`, `${prefijo}_v30`, `${prefijo}_v29`, `${prefijo}_v28`, `${prefijo}_v27`, `${prefijo}_v26`,
-        `${prefijo}_v25`, `${prefijo}_v24`, `${prefijo}_v23`, `${prefijo}_v22`, `${prefijo}_v21`, `${prefijo}_v20`,
-        `${prefijo}_v19`, `${prefijo}_v18`, `${prefijo}_v17`, `${prefijo}_v16`, `${prefijo}_v15`, `${prefijo}_v14`,
-        `${prefijo}_v13`, `${prefijo}_v12`, `${prefijo}_v11`, `${prefijo}_v10`, `${prefijo}_v9`, `${prefijo}_v8`,
-        `${prefijo}_v7`, `${prefijo}_v6`, `${prefijo}_v5`, `${prefijo}_v4`, `${prefijo}_v3`, `${prefijo}_v2`, `${prefijo}_v1`
-      ];
-
-      for (let c of clavesDirectas) {
-        try {
-          const res = localStorage.getItem(c);
-          if (res) {
-            const parsed = JSON.parse(res);
-            if (parsed && (Object.keys(parsed).length > 0 || (Array.isArray(parsed) && parsed.length > 0))) {
-              return parsed;
+    // ESCANEO GLOBAL ABSOLUTO EN TODO EL LOCALSTORAGE
+    function escanearDepositoCompleto() {
+      let resultado = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.includes('deposito')) {
+          try {
+            const raw = localStorage.getItem(key);
+            if (raw) {
+              const data = JSON.parse(raw);
+              if (data && typeof data === 'object') {
+                Object.keys(data).forEach(k => {
+                  if (typeof data[k] === 'number' && data[k] > 0) {
+                    if (!resultado[k] || data[k] > resultado[k]) {
+                      resultado[k] = data[k];
+                    }
+                  }
+                });
+              }
             }
-          }
-        } catch (e) {}
+          } catch(e){}
+        }
+      }
+      return resultado;
+    }
+
+    function recuperarDatosDeVersionesAnteriores(prefijo, defecto) {
+      if (prefijo === 'obra_deposito') {
+        const escaneado = escanearDepositoCompleto();
+        if (Object.keys(escaneado).length > 0) return escaneado;
       }
 
       for (let i = 0; i < localStorage.length; i++) {
         const k = localStorage.key(i);
-        if (k && k.startsWith(prefijo)) {
+        if (k && k.includes(prefijo)) {
           try {
             const val = localStorage.getItem(k);
             if (val) {
@@ -434,7 +447,6 @@
           } catch (e) {}
         }
       }
-
       return defecto;
     }
 
@@ -456,6 +468,18 @@
       renderGestionMateriales();
       actualizarPorcentajeAvanceObra();
       calcularPedidoPisoTeorico();
+    }
+
+    function forzarEscaneoProfundo() {
+      const hallado = escanearDepositoCompleto();
+      if (Object.keys(hallado).length > 0) {
+        deposito = hallado;
+        guardarDatos();
+        renderGestionMateriales();
+        alert("¡Stock de depósito recuperado exitosamente!");
+      } else {
+        alert("No se encontraron registros previos de depósito. Podés cargarlos desde la tabla a continuación.");
+      }
     }
 
     function switchTab(tab) {
@@ -794,7 +818,7 @@
 
     function guardarDatos() {
       try {
-        const v = 'v33';
+        const v = 'v34';
         localStorage.setItem(`obra_mat_std_${v}`, JSON.stringify(materialesStd));
         localStorage.setItem(`obra_mat_esp1_${v}`, JSON.stringify(materialesEsp1));
         localStorage.setItem(`obra_mat_esp2_${v}`, JSON.stringify(materialesEsp2));
@@ -858,7 +882,7 @@
 
     function confirmarSalidaSegunPlantilla() {
       const tipoSelect = document.getElementById('select-salida-tipo');
-      const textoTipo = tipoSelect.options[tipoSelect.selectedIndex].text;
+      const textoTipo = tipoSelect.options[textoTipo.selectedIndex].text;
 
       let seleccionados = itemsSalidaGuiada.filter(i => i.activo && i.cantAEntregar > 0);
       if (seleccionados.length === 0) return alert('No seleccionaste ningún insumo para entregar.');
@@ -880,7 +904,6 @@
 
     let listaPedidoCompraCalculada = [];
 
-    // CONSOLIDACIÓN CORREGIDA POR ID DE MATERIAL
     function calcularPedidoGlobal() {
       const filtro = document.getElementById('select-filtro-pedido').value;
       const cont = document.getElementById('resumen-pedido-global');
